@@ -7,7 +7,7 @@
     <meta name="description" content="A free times tables drill built by Claude AI. Wrong answers come back until you know them.">
     <meta name="keywords" content="times tables, multiplication drill, free, practice, maths, dyscalculia">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=EB+Garamond:wght@400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=EB+Garamond:wght@400;500&family=Libre+Baskerville:wght@400;700&display=swap');
 
         * {
             box-sizing: border-box;
@@ -76,9 +76,9 @@
             }
 
         .stat-num {
-            font-family: 'Cormorant Garamond', serif;
+            font-family: 'Libre Baskerville', 'Georgia', serif;
             font-size: 26px;
-            font-weight: 500;
+            font-weight: 700;
             color: #1a1916;
             line-height: 1;
         }
@@ -103,9 +103,9 @@
         }
 
         .question {
-            font-family: 'Cormorant Garamond', 'Times New Roman', serif;
+            font-family: 'Libre Baskerville', 'Georgia', serif;
             font-size: 64px;
-            font-weight: 500;
+            font-weight: 700;
             color: #1a1916;
             letter-spacing: -1px;
             margin-bottom: 10px;
@@ -134,16 +134,14 @@
             border: 0.5px solid #c8c4bc;
             border-radius: 2px;
             padding: 14px 18px;
-            font-family: 'Cormorant Garamond', serif;
+            font-family: 'Libre Baskerville', 'Georgia', serif;
             font-size: 28px;
-            font-weight: 500;
+            font-weight: 700;
             color: #1a1916;
             text-align: center;
             outline: none;
             transition: border-color .15s;
         }
-
-
 
             .answer-input:focus {
                 border-color: #1a1916;
@@ -327,6 +325,128 @@
             .missed-only-btn:hover {
                 border-color: #1a1916;
             }
+
+        /* ── MORON CHECKER ── */
+        .mc-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(250,249,247,0.45);
+            backdrop-filter: blur(2px);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            animation: mc-fade-in .25s ease;
+        }
+
+        .mc-overlay.visible {
+            display: flex;
+        }
+
+        @keyframes mc-fade-in {
+            from { opacity: 0; transform: scale(0.97); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+
+        .mc-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .18em;
+            color: #8a8680;
+            margin-bottom: 14px;
+        }
+
+        .mc-grid {
+            border-collapse: collapse;
+            font-family: 'Libre Baskerville', 'Georgia', serif;
+        }
+
+        .mc-grid td {
+            width: 34px;
+            height: 34px;
+            text-align: center;
+            font-size: 14px;
+            border: 0.5px solid rgba(200,196,188,0.5);
+            color: rgba(106,102,96,0.35);
+            transition: background .15s;
+        }
+
+        .mc-grid td.mc-header {
+            font-size: 12px;
+            color: rgba(170,166,158,0.4);
+            background: rgba(245,244,241,0.5);
+            font-style: italic;
+        }
+
+        .mc-grid td.mc-highlight {
+            background: #1a1916;
+            color: #faf9f7;
+            font-size: 17px;
+            font-weight: 700;
+            font-style: normal;
+        }
+
+        .mc-grid td.mc-row-header,
+        .mc-grid td.mc-col-header {
+            background: #eeecea;
+            color: #1a1916;
+            font-weight: 500;
+        }
+
+        .mc-dismiss {
+            margin-top: 18px;
+            font-size: 12px;
+            color: #aaa69e;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            font-style: italic;
+        }
+
+        /* timer bar under the question card */
+        .timer-bar-wrap {
+            width: 100%;
+            max-width: 420px;
+            height: 2px;
+            background: #eeecea;
+            margin-top: -1.5rem;
+            margin-bottom: 1.5rem;
+            border-radius: 1px;
+            overflow: hidden;
+        }
+
+        .timer-bar-fill {
+            height: 100%;
+            background: #c8a060;
+            width: 100%;
+            transform-origin: left;
+            transition: none;
+        }
+
+        /* settings row */
+        .settings-row {
+            width: 100%;
+            max-width: 420px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-bottom: 1.5rem;
+            font-size: 12px;
+            color: #8a8680;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+        }
+
+        .settings-row input[type=range] {
+            width: 80px;
+            accent-color: #1a1916;
+        }
+
+        .settings-row span {
+            min-width: 28px;
+            text-align: right;
+        }
     </style>
 </head>
 <body>
@@ -346,10 +466,22 @@
         <div class="progress-bar-fill" id="progress-bar" style="width:0%"></div>
     </div>
 
+    <!-- moron checker timer setting -->
+    <div class="settings-row">
+        <label for="mc-timer-range">Moron checker</label>
+        <input type="range" id="mc-timer-range" min="3" max="15" value="5" step="1" oninput="updateTimerLabel(this.value)">
+        <span id="mc-timer-label">5s</span>
+    </div>
+
     <div id="drill-screen">
         <div class="card">
             <div class="question" id="question">? × ?</div>
             <div class="hint" id="hint-text"></div>
+        </div>
+
+        <!-- countdown bar -->
+        <div class="timer-bar-wrap">
+            <div class="timer-bar-fill" id="timer-bar"></div>
         </div>
 
         <div class="input-row">
@@ -373,6 +505,13 @@
             <button class="restart-btn" onclick="startFresh()">Full drill again</button>
             <button class="missed-only-btn" id="missed-only-btn" onclick="drillMissed()">Missed only</button>
         </div>
+    </div>
+
+    <!-- MORON CHECKER OVERLAY -->
+    <div class="mc-overlay" id="mc-overlay">
+        <div class="mc-label" id="mc-label">Moron checker — <span id="mc-question-label"></span></div>
+        <table class="mc-grid" id="mc-grid"></table>
+        <div class="mc-dismiss">Start typing to dismiss</div>
     </div>
 
     <script>
@@ -400,6 +539,17 @@
 
         let allFacts = buildTable();
         let queue = [], missed = {}, correct = 0, wrong = 0, streak = 0, current = null, total = 0, done_count = 0;
+
+        // moron checker state
+        let mcTimer = null;
+        let mcAnimFrame = null;
+        let mcStartTime = null;
+        let mcDuration = 5000; // ms, default 5s
+
+        function updateTimerLabel(val) {
+            document.getElementById('mc-timer-label').textContent = val + 's';
+            mcDuration = parseInt(val) * 1000;
+        }
 
         function shuffle(arr) {
             for (let i = arr.length - 1; i > 0; i--) {
@@ -430,6 +580,7 @@
         }
 
         function nextQuestion() {
+            clearMoronChecker();
             if (!queue.length) { showDone(); return; }
             const flip = Math.random() > 0.5;
             const [a, b] = queue.pop();
@@ -441,7 +592,92 @@
             const inp = document.getElementById('answer-input');
             inp.value = ''; inp.className = 'answer-input'; inp.focus();
             updateProgress(); updateMissed();
+            startMoronTimer();
         }
+
+        // ── MORON CHECKER ──────────────────────────────────────────────
+        function startMoronTimer() {
+            clearMoronChecker();
+            mcStartTime = performance.now();
+            tickTimerBar();
+            mcTimer = setTimeout(showMoronChecker, mcDuration);
+        }
+
+        function tickTimerBar() {
+            const bar = document.getElementById('timer-bar');
+            function frame(now) {
+                const elapsed = now - mcStartTime;
+                const pct = Math.max(0, 1 - elapsed / mcDuration);
+                bar.style.width = (pct * 100) + '%';
+                if (pct > 0) mcAnimFrame = requestAnimationFrame(frame);
+            }
+            mcAnimFrame = requestAnimationFrame(frame);
+        }
+
+        function clearMoronChecker() {
+            clearTimeout(mcTimer);
+            cancelAnimationFrame(mcAnimFrame);
+            mcTimer = null; mcAnimFrame = null; mcStartTime = null;
+            document.getElementById('mc-overlay').classList.remove('visible');
+            document.getElementById('timer-bar').style.width = '100%';
+        }
+
+        function showMoronChecker() {
+            if (!current) return;
+            const [qa, qb] = current;
+            const isRelaxed = mcDuration > 2500;
+            const label = isRelaxed
+                ? `yeah — ${qa} × ${qb}`
+                : `moron checker — ${qa} × ${qb}`;
+            document.getElementById('mc-question-label').textContent = '';
+            document.getElementById('mc-label').textContent = label;
+            buildMCGrid(qa, qb);
+            document.getElementById('mc-overlay').classList.add('visible');
+        }
+
+        function buildMCGrid(qa, qb) {
+            // Show the full 2–12 table with the answer cell lit up
+            const table = document.getElementById('mc-grid');
+            table.innerHTML = '';
+            const cols = [];
+            for (let c = 2; c <= 12; c++) cols.push(c);
+
+            // header row
+            const thead = document.createElement('tr');
+            const corner = document.createElement('td');
+            corner.className = 'mc-header';
+            corner.textContent = '×';
+            thead.appendChild(corner);
+            for (const c of cols) {
+                const th = document.createElement('td');
+                th.textContent = c;
+                th.className = c === qb ? 'mc-col-header' : 'mc-header';
+                thead.appendChild(th);
+            }
+            table.appendChild(thead);
+
+            // data rows
+            for (let r = 2; r <= 12; r++) {
+                const tr = document.createElement('tr');
+                const rh = document.createElement('td');
+                rh.textContent = r;
+                rh.className = r === qa ? 'mc-row-header' : 'mc-header';
+                tr.appendChild(rh);
+                for (const c of cols) {
+                    const td = document.createElement('td');
+                    td.textContent = r * c;
+                    if (r === qa && c === qb) {
+                        td.className = 'mc-highlight';
+                    } else if (r === qa || c === qb) {
+                        td.style.background = '#f5f0e8';
+                        td.style.color = '#9a8060';
+                    }
+                    tr.appendChild(td);
+                }
+                table.appendChild(tr);
+            }
+        }
+        // ────────────────────────────────────────────────────────────────
 
         function getHintText(a, b) {
             const key = String(Math.min(a, b)), other = Math.max(a, b);
@@ -454,6 +690,7 @@
 
         function submitAnswer() {
             if (!current) return;
+            clearMoronChecker();
             const inp = document.getElementById('answer-input');
             const val = parseInt(inp.value);
             if (isNaN(val)) return;
@@ -481,6 +718,7 @@
                     inp.value = ''; inp.className = 'answer-input'; inp.focus();
                     document.getElementById('feedback').textContent = '';
                     document.getElementById('feedback').className = 'feedback';
+                    startMoronTimer();
                 }, 2000);
             }
         }
@@ -508,6 +746,7 @@
         }
 
         function showDone() {
+            clearMoronChecker();
             document.getElementById('drill-screen').style.display = 'none';
             document.getElementById('done-screen').style.display = 'block';
             const t = correct + wrong;
@@ -517,7 +756,16 @@
             document.getElementById('missed-only-btn').style.display = Object.keys(missed).length ? 'inline-block' : 'none';
         }
 
-        document.getElementById('answer-input').addEventListener('keydown', e => { if (e.key === 'Enter') submitAnswer(); });
+        document.getElementById('answer-input').addEventListener('keydown', e => {
+            if (e.key === 'Enter') submitAnswer();
+        });
+
+        // typing dismisses the moron checker
+        document.getElementById('answer-input').addEventListener('input', () => {
+            if (document.getElementById('mc-overlay').classList.contains('visible')) {
+                document.getElementById('mc-overlay').classList.remove('visible');
+            }
+        });
 
         startFresh();
     </script>
