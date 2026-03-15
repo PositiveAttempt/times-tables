@@ -1,4 +1,5 @@
-Link: (https://timestablesdriller.netlify.app/)
+https://positiveattempt.github.io/MWebsite/
+https://timestablesdriller.netlify.app/)
 
 This is a times table driller that Claude AI made for me after
 discussions about how I suck at maths and essentially for me to
