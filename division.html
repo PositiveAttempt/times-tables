@@ -867,7 +867,12 @@
             for (const c of cols) {
                 const th = document.createElement('td');
                 th.textContent = c;
-                th.className = c === qb ? 'mc-col-header' : 'mc-header';
+                // answer column header gets the black highlight — that's what you type
+                if (c === qb) {
+                    th.className = 'mc-highlight';
+                } else {
+                    th.className = 'mc-header';
+                }
                 thead.appendChild(th);
             }
             table.appendChild(thead);
@@ -882,7 +887,10 @@
                     const td = document.createElement('td');
                     td.textContent = r * c;
                     if (r === qa && c === qb) {
-                        td.className = 'mc-highlight';
+                        // product cell — amber, not black (it's the given, not the answer)
+                        td.style.background = '#c8a060';
+                        td.style.color = '#fff';
+                        td.style.fontWeight = '700';
                     } else if (r === qa || c === qb) {
                         td.style.background = '#f5f0e8';
                         td.style.color = '#9a8060';

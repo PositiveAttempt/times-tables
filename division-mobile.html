@@ -528,14 +528,14 @@
             const hr = document.createElement('tr');
             const corner = document.createElement('td');
             corner.className = 'mc-header'; corner.textContent = '×'; hr.appendChild(corner);
-            for (const c of cols) { const th = document.createElement('td'); th.textContent = c; th.className = c === qb ? 'mc-col-header' : 'mc-header'; hr.appendChild(th); }
+            for (const c of cols) { const th = document.createElement('td'); th.textContent = c; th.className = c === qb ? 'mc-highlight' : 'mc-header'; hr.appendChild(th); }
             table.appendChild(hr);
             for (let r = 2; r <= 12; r++) {
                 const tr = document.createElement('tr');
                 const rh = document.createElement('td'); rh.textContent = r; rh.className = r === qa ? 'mc-row-header' : 'mc-header'; tr.appendChild(rh);
                 for (const c of cols) {
                     const td = document.createElement('td'); td.textContent = r * c;
-                    if (r === qa && c === qb) td.className = 'mc-highlight';
+                    if (r === qa && c === qb) { td.style.background = '#c8a060'; td.style.color = '#fff'; td.style.fontWeight = '700'; }
                     else if (r === qa || c === qb) { td.style.background = 'rgba(245,240,232,0.9)'; td.style.color = '#9a8060'; }
                     tr.appendChild(td);
                 }
