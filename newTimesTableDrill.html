@@ -1,290 +1,333 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Times Tables</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=EB+Garamond:wght@400;500&display=swap');
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Times Tables</title>
+    <meta name="description" content="A free times tables drill built by Claude AI. Wrong answers come back until you know them.">
+    <meta name="keywords" content="times tables, multiplication drill, free, practice, maths, dyscalculia">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=EB+Garamond:wght@400;500&display=swap');
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-body {
-  background: #faf9f7;
-  font-family: 'EB Garamond', 'Times New Roman', serif;
-  color: #1a1916;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 3rem 1.5rem;
-}
+        body {
+            background: #faf9f7;
+            font-family: 'EB Garamond', 'Times New Roman', serif;
+            color: #1a1916;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 3rem 1.5rem;
+        }
 
-.header {
-  text-align: center;
-  margin-bottom: 2.5rem;
-  border-bottom: 0.5px solid #c8c4bc;
-  padding-bottom: 1.5rem;
-  width: 100%;
-  max-width: 420px;
-}
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            border-bottom: 0.5px solid #c8c4bc;
+            padding-bottom: 1.5rem;
+            width: 100%;
+            max-width: 420px;
+        }
 
-.title {
-  font-family: 'Cormorant Garamond', 'Times New Roman', serif;
-  font-weight: 600;
-  font-size: 32px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #1a1916;
-  margin-bottom: 4px;
-}
+        .title {
+            font-family: 'Cormorant Garamond', 'Times New Roman', serif;
+            font-weight: 600;
+            font-size: 32px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #1a1916;
+            margin-bottom: 4px;
+        }
 
-.subtitle {
-  font-size: 13px;
-  color: #8a8680;
-  letter-spacing: .15em;
-  text-transform: uppercase;
-  font-style: italic;
-}
+        .subtitle {
+            font-size: 13px;
+            color: #8a8680;
+            letter-spacing: .15em;
+            text-transform: uppercase;
+            font-style: italic;
+        }
 
-.stats-row {
-  display: flex;
-  gap: 0;
-  margin-bottom: 2.5rem;
-  width: 100%;
-  max-width: 420px;
-  border: 0.5px solid #c8c4bc;
-  border-radius: 2px;
-  overflow: hidden;
-}
+        .stats-row {
+            display: flex;
+            gap: 0;
+            margin-bottom: 2.5rem;
+            width: 100%;
+            max-width: 420px;
+            border: 0.5px solid #c8c4bc;
+            border-radius: 2px;
+            overflow: hidden;
+        }
 
-.stat {
-  flex: 1;
-  padding: 12px 10px;
-  text-align: center;
-  border-right: 0.5px solid #c8c4bc;
-}
-.stat:last-child { border-right: none; }
+        .stat {
+            flex: 1;
+            padding: 12px 10px;
+            text-align: center;
+            border-right: 0.5px solid #c8c4bc;
+        }
 
-.stat-num {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 26px;
-  font-weight: 500;
-  color: #1a1916;
-  line-height: 1;
-}
+            .stat:last-child {
+                border-right: none;
+            }
 
-.stat-label {
-  font-size: 10px;
-  color: #8a8680;
-  text-transform: uppercase;
-  letter-spacing: .1em;
-  margin-top: 3px;
-}
+        .stat-num {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 26px;
+            font-weight: 500;
+            color: #1a1916;
+            line-height: 1;
+        }
 
-.card {
-  width: 100%;
-  max-width: 420px;
-  border: 0.5px solid #c8c4bc;
-  border-radius: 2px;
-  padding: 3rem 2rem;
-  text-align: center;
-  margin-bottom: 1.5rem;
-  background: #fff;
-}
+        .stat-label {
+            font-size: 10px;
+            color: #8a8680;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            margin-top: 3px;
+        }
 
-.question {
-  font-family: 'Cormorant Garamond', 'Times New Roman', serif;
-  font-size: 64px;
-  font-weight: 500;
-  color: #1a1916;
-  letter-spacing: -1px;
-  margin-bottom: 10px;
-  line-height: 1;
-}
+        .card {
+            width: 100%;
+            max-width: 420px;
+            border: 0.5px solid #c8c4bc;
+            border-radius: 2px;
+            padding: 3rem 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            background: #fff;
+        }
 
-.hint {
-  font-size: 14px;
-  color: #8a8680;
-  min-height: 20px;
-  font-style: italic;
-  letter-spacing: .01em;
-}
+        .question {
+            font-family: 'Cormorant Garamond', 'Times New Roman', serif;
+            font-size: 64px;
+            font-weight: 500;
+            color: #1a1916;
+            letter-spacing: -1px;
+            margin-bottom: 10px;
+            line-height: 1;
+        }
 
-.input-row {
-  display: flex;
-  gap: 8px;
-  width: 100%;
-  max-width: 420px;
-  margin-bottom: 1rem;
-}
+        .hint {
+            font-size: 14px;
+            color: #8a8680;
+            min-height: 20px;
+            font-style: italic;
+            letter-spacing: .01em;
+        }
 
-.answer-input {
-  flex: 1;
-  background: #fff;
-  border: 0.5px solid #c8c4bc;
-  border-radius: 2px;
-  padding: 14px 18px;
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 28px;
-  font-weight: 500;
-  color: #1a1916;
-  text-align: center;
-  outline: none;
-  transition: border-color .15s;
-}
+        .input-row {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+            max-width: 420px;
+            margin-bottom: 1rem;
+        }
+
+        .answer-input {
+            flex: 1;
+            background: #fff;
+            border: 0.5px solid #c8c4bc;
+            border-radius: 2px;
+            padding: 14px 18px;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 28px;
+            font-weight: 500;
+            color: #1a1916;
+            text-align: center;
+            outline: none;
+            transition: border-color .15s;
+        }
 
 
 
-.answer-input:focus { border-color: #1a1916; }
-.answer-input.correct { border-color: #3a7d5e; color: #3a7d5e; }
-.answer-input.wrong { border-color: #b84040; color: #b84040; }
+            .answer-input:focus {
+                border-color: #1a1916;
+            }
 
-.submit-btn {
-  background: #1a1916;
-  color: #faf9f7;
-  border: none;
-  border-radius: 2px;
-  padding: 14px 22px;
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 20px;
-  cursor: pointer;
-  transition: opacity .15s, transform .1s;
-  letter-spacing: .05em;
-}
+            .answer-input.correct {
+                border-color: #3a7d5e;
+                color: #3a7d5e;
+            }
 
-.submit-btn:hover { opacity: .8; }
-.submit-btn:active { transform: scale(0.97); }
+            .answer-input.wrong {
+                border-color: #b84040;
+                color: #b84040;
+            }
 
-.feedback {
-  font-size: 15px;
-  min-height: 22px;
-  margin-bottom: 1rem;
-  font-style: italic;
-  text-align: center;
-  letter-spacing: .01em;
-}
+        .submit-btn {
+            background: #1a1916;
+            color: #faf9f7;
+            border: none;
+            border-radius: 2px;
+            padding: 14px 22px;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 20px;
+            cursor: pointer;
+            transition: opacity .15s, transform .1s;
+            letter-spacing: .05em;
+        }
 
-.feedback.correct { color: #3a7d5e; }
-.feedback.wrong { color: #b84040; }
+            .submit-btn:hover {
+                opacity: .8;
+            }
 
-.hint-btn {
-  background: transparent;
-  border: 0.5px solid #c8c4bc;
-  border-radius: 2px;
-  padding: 7px 16px;
-  font-family: 'EB Garamond', serif;
-  font-size: 13px;
-  color: #8a8680;
-  cursor: pointer;
-  transition: all .15s;
-  margin-bottom: 2rem;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
+            .submit-btn:active {
+                transform: scale(0.97);
+            }
 
-.hint-btn:hover { border-color: #1a1916; color: #1a1916; }
+        .feedback {
+            font-size: 15px;
+            min-height: 22px;
+            margin-bottom: 1rem;
+            font-style: italic;
+            text-align: center;
+            letter-spacing: .01em;
+        }
 
-.progress-bar-wrap {
-  width: 100%;
-  max-width: 420px;
-  height: 1px;
-  background: #c8c4bc;
-  margin-bottom: 2rem;
-}
+            .feedback.correct {
+                color: #3a7d5e;
+            }
 
-.progress-bar-fill {
-  height: 100%;
-  background: #1a1916;
-  transition: width .4s ease;
-}
+            .feedback.wrong {
+                color: #b84040;
+            }
 
-.missed-section {
-  width: 100%;
-  max-width: 420px;
-  margin-top: .5rem;
-}
+        .hint-btn {
+            background: transparent;
+            border: 0.5px solid #c8c4bc;
+            border-radius: 2px;
+            padding: 7px 16px;
+            font-family: 'EB Garamond', serif;
+            font-size: 13px;
+            color: #8a8680;
+            cursor: pointer;
+            transition: all .15s;
+            margin-bottom: 2rem;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
 
-.missed-title {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: .12em;
-  color: #8a8680;
-  margin-bottom: 8px;
-}
+            .hint-btn:hover {
+                border-color: #1a1916;
+                color: #1a1916;
+            }
 
-.missed-pills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
+        .progress-bar-wrap {
+            width: 100%;
+            max-width: 420px;
+            height: 1px;
+            background: #c8c4bc;
+            margin-bottom: 2rem;
+        }
 
-.missed-pill {
-  font-family: 'EB Garamond', serif;
-  font-size: 13px;
-  padding: 4px 12px;
-  border-radius: 1px;
-  background: #fff;
-  border: 0.5px solid #c8a0a0;
-  color: #b84040;
-  letter-spacing: .03em;
-}
+        .progress-bar-fill {
+            height: 100%;
+            background: #1a1916;
+            transition: width .4s ease;
+        }
 
-.done-screen {
-  display: none;
-  text-align: center;
-  width: 100%;
-  max-width: 420px;
-  padding-top: 1rem;
-}
+        .missed-section {
+            width: 100%;
+            max-width: 420px;
+            margin-top: .5rem;
+        }
 
-.done-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 42px;
-  font-weight: 500;
-  margin-bottom: 8px;
-  letter-spacing: .05em;
-}
+        .missed-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .12em;
+            color: #8a8680;
+            margin-bottom: 8px;
+        }
 
-.done-sub {
-  font-size: 15px;
-  color: #8a8680;
-  margin-bottom: 2.5rem;
-  font-style: italic;
-}
+        .missed-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
 
-.done-buttons { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        .missed-pill {
+            font-family: 'EB Garamond', serif;
+            font-size: 13px;
+            padding: 4px 12px;
+            border-radius: 1px;
+            background: #fff;
+            border: 0.5px solid #c8a0a0;
+            color: #b84040;
+            letter-spacing: .03em;
+        }
 
-.restart-btn {
-  background: #1a1916;
-  color: #faf9f7;
-  border: none;
-  border-radius: 2px;
-  padding: 13px 28px;
-  font-family: 'EB Garamond', serif;
-  font-size: 15px;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: opacity .15s;
-}
-.restart-btn:hover { opacity: .8; }
+        .done-screen {
+            display: none;
+            text-align: center;
+            width: 100%;
+            max-width: 420px;
+            padding-top: 1rem;
+        }
 
-.missed-only-btn {
-  background: transparent;
-  border: 0.5px solid #c8c4bc;
-  border-radius: 2px;
-  padding: 13px 28px;
-  font-family: 'EB Garamond', serif;
-  font-size: 15px;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  cursor: pointer;
-  color: #1a1916;
-  transition: border-color .15s;
-}
-.missed-only-btn:hover { border-color: #1a1916; }
-</style>
+        .done-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 42px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            letter-spacing: .05em;
+        }
+
+        .done-sub {
+            font-size: 15px;
+            color: #8a8680;
+            margin-bottom: 2.5rem;
+            font-style: italic;
+        }
+
+        .done-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .restart-btn {
+            background: #1a1916;
+            color: #faf9f7;
+            border: none;
+            border-radius: 2px;
+            padding: 13px 28px;
+            font-family: 'EB Garamond', serif;
+            font-size: 15px;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: opacity .15s;
+        }
+
+            .restart-btn:hover {
+                opacity: .8;
+            }
+
+        .missed-only-btn {
+            background: transparent;
+            border: 0.5px solid #c8c4bc;
+            border-radius: 2px;
+            padding: 13px 28px;
+            font-family: 'EB Garamond', serif;
+            font-size: 15px;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            cursor: pointer;
+            color: #1a1916;
+            transition: border-color .15s;
+        }
+
+            .missed-only-btn:hover {
+                border-color: #1a1916;
+            }
+    </style>
 </head>
 <body>
 
