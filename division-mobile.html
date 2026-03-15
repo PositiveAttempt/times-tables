@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
-    <title>Times Tables</title>
+    <title>Times Tables — Division</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600&family=EB+Garamond:wght@400&family=Libre+Baskerville:wght@400;700&display=swap');
 
@@ -370,8 +370,7 @@
 
     <div id="hud">
         <div id="hud-title">
-            <a href="https://github.com/PositiveAttempt" target="_blank" rel="noopener" style="text-decoration:none;color:#c8c4bc;font-family:'EB Garamond',serif;font-size:10px;letter-spacing:.12em;">PositiveAttempt</a>
-            <a href="division-mobile.html" style="display:block;margin-top:2px;text-decoration:none;color:#c8c4bc;font-family:'EB Garamond',serif;font-size:9px;letter-spacing:.12em;text-transform:uppercase;">÷ division</a>
+            <a href="mobile.html" style="text-decoration:none;color:#c8c4bc;font-family:'EB Garamond',serif;font-size:10px;letter-spacing:.12em;">× multiply</a>
         </div>
         <div id="hud-stats">
             <span><b id="s-correct">0</b>ok</span>
@@ -387,7 +386,7 @@
     <div id="prog-wrap"><div id="prog-fill"></div></div>
 
     <div id="stage">
-        <div id="question">?×?</div>
+        <div id="question">?÷?</div>
         <div id="hint-text"></div>
         <div id="timer-wrap"><div id="timer-fill"></div></div>
         <div id="input-row">
@@ -460,8 +459,10 @@
             if (!queue.length) { showDone(); return; }
             const flip = Math.random() > .5;
             const [a, b] = queue.pop();
+            // current = [knownFactor, unknownFactor]
+            // Question: (knownFactor × unknownFactor) ÷ knownFactor = ?
             current = flip ? [b, a] : [a, b];
-            document.getElementById('question').textContent = `${current[0]}×${current[1]}`;
+            document.getElementById('question').textContent = `${current[0] * current[1]}÷${current[0]}`;
             document.getElementById('hint-text').textContent = '';
             document.getElementById('feedback').textContent = '';
             document.getElementById('feedback').className = '';
@@ -503,7 +504,8 @@
         function showMC() {
             if (!current) return;
             const [qa, qb] = current;
-            document.getElementById('mc-label').textContent = mcDur > 2500 ? `yeah — ${qa}×${qb}` : `moron checker — ${qa}×${qb}`;
+            const product = qa * qb;
+            document.getElementById('mc-label').textContent = mcDur > 2500 ? `yeah — ${product}÷${qa}` : `moron checker — ${product}÷${qa}`;
             buildGrid(qa, qb);
             mcVisible = true;
             document.getElementById('mc-overlay').classList.add('visible');
@@ -550,8 +552,8 @@
             const inp = document.getElementById('answer-input');
             const val = parseInt(inp.value);
             if (isNaN(val)) return;
-            const ans = current[0] * current[1];
-            const key = current.join('×');
+            const ans = current[1]; // the unknown factor
+            const key = current[0] + '÷' + current[1];
 
             if (val === ans) {
                 inp.className = 'correct';
