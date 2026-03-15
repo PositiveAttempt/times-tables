@@ -873,6 +873,14 @@
         document.getElementById('answer-den').addEventListener('keydown', e => { if (e.key === 'Enter') submitAnswer(); });
         document.addEventListener('keydown', e => { if (e.key === 'Enter') return; if (mcVisible) dismissMoronChecker(); });
 
+        // Auto-advance: jump to denominator as soon as the typed numerator matches
+        document.getElementById('answer-num').addEventListener('input', () => {
+            if (!current) return;
+            if (parseInt(document.getElementById('answer-num').value) === current.rNum) {
+                document.getElementById('answer-den').focus();
+            }
+        });
+
         startFresh();
     </script>
 

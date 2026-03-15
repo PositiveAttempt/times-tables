@@ -595,6 +595,14 @@
         document.getElementById('answer-num').addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
         document.getElementById('answer-den').addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
         document.addEventListener('keydown', e => { if (e.key === 'Enter') return; if (mcVisible) dismissMC(); });
+
+        // Auto-advance: jump to denominator as soon as the typed numerator matches
+        document.getElementById('answer-num').addEventListener('input', () => {
+            if (!current) return;
+            if (parseInt(document.getElementById('answer-num').value) === current.rNum) {
+                document.getElementById('answer-den').focus();
+            }
+        });
         document.getElementById('mc-overlay').addEventListener('click', dismissMC);
         document.getElementById('submit-btn').addEventListener('click', submit);
         document.getElementById('hint-btn').addEventListener('click', () => {
