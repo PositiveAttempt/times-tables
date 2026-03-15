@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
     <title>Times Tables</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600&family=EB+Garamond:wght@400&family=Libre+Baskerville:wght@400;700&display=swap');
@@ -20,6 +20,8 @@
             background: #faf9f7;
             font-family: 'EB Garamond', serif;
             color: #1a1916;
+            position: fixed;
+            width: 100%;
         }
 
         /* HUD — hairline strip, gets out of the way */
@@ -593,6 +595,18 @@
         document.getElementById('hint-btn').addEventListener('click', () => { if (current) document.getElementById('hint-text').textContent = getHint(current[0], current[1]); });
         document.getElementById('restart-btn').addEventListener('click', startFresh);
         document.getElementById('missed-btn').addEventListener('click', drillMissed);
+
+        // Keep stage pinned below HUD regardless of keyboard height
+        function fitStage() {
+            const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+            const stage = document.getElementById('stage');
+            stage.style.height = (vh - 30) + 'px';
+            stage.style.bottom = 'auto';
+        }
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', fitStage);
+        }
+        fitStage();
 
         startFresh();
     </script>
