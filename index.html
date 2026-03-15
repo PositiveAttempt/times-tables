@@ -516,7 +516,7 @@
 
     <!-- MORON CHECKER OVERLAY -->
     <div class="mc-overlay" id="mc-overlay" onclick="this.classList.remove('visible'); document.getElementById('answer-input').focus();">
-        <div class="mc-label" id="mc-label">Moron checker — <span id="mc-question-label"></span></div>
+        <div class="mc-label" id="mc-label"></div>
         <table class="mc-grid" id="mc-grid"></table>
         <div class="mc-dismiss">Start typing to dismiss</div>
     </div>
@@ -636,7 +636,6 @@
             const label = isRelaxed
                 ? `yeah — ${qa} × ${qb}`
                 : `moron checker — ${qa} × ${qb}`;
-            document.getElementById('mc-question-label').textContent = '';
             document.getElementById('mc-label').textContent = label;
             buildMCGrid(qa, qb);
             document.getElementById('mc-overlay').classList.add('visible');
