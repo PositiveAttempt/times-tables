@@ -394,8 +394,7 @@
                     font-style: normal;
                 }
 
-                .mc-grid td.mc-row-header,
-                .mc-grid td.mc-col-header {
+                .mc-grid td.mc-row-header, .mc-grid td.mc-col-header {
                     background: #eeecea;
                     color: #1a1916;
                     font-weight: 500;
@@ -410,7 +409,6 @@
             font-style: italic;
         }
 
-        /* timer bar under the question card */
         .timer-bar-wrap {
             width: 100%;
             max-width: 420px;
@@ -430,7 +428,6 @@
             transition: none;
         }
 
-        /* settings row */
         .settings-row {
             width: 100%;
             max-width: 420px;
@@ -473,7 +470,6 @@
         <div class="progress-bar-fill" id="progress-bar" style="width:0%"></div>
     </div>
 
-    <!-- moron checker timer setting -->
     <div class="settings-row">
         <label for="mc-timer-range">Moron checker</label>
         <input type="range" id="mc-timer-range" min="3" max="15" value="5" step="1" oninput="updateTimerLabel(this.value)">
@@ -486,7 +482,6 @@
             <div class="hint" id="hint-text"></div>
         </div>
 
-        <!-- countdown bar -->
         <div class="timer-bar-wrap">
             <div class="timer-bar-fill" id="timer-bar"></div>
         </div>
@@ -514,11 +509,10 @@
         </div>
     </div>
 
-    <!-- MORON CHECKER OVERLAY -->
-    <div class="mc-overlay" id="mc-overlay" onclick="this.classList.remove('visible'); document.getElementById('answer-input').focus();">
+    <div class="mc-overlay" id="mc-overlay" onclick="dismissMoronChecker()">
         <div class="mc-label" id="mc-label"></div>
         <table class="mc-grid" id="mc-grid"></table>
-        <div class="mc-dismiss">Start typing to dismiss</div>
+        <div class="mc-dismiss">Any key or tap to dismiss</div>
     </div>
 
     <script>
@@ -546,12 +540,8 @@
 
         let allFacts = buildTable();
         let queue = [], missed = {}, correct = 0, wrong = 0, streak = 0, current = null, total = 0, done_count = 0;
-
-        // moron checker state
-        let mcTimer = null;
-        let mcAnimFrame = null;
-        let mcStartTime = null;
-        let mcDuration = 5000; // ms, default 5s
+        let mcTimer = null, mcAnimFrame = null, mcStartTime = null, mcDuration = 5000;
+        let mcVisible = false;   // track overlay state ourselves
 
         function updateTimerLabel(val) {
             document.getElementById('mc-timer-label').textContent = val + 's';
@@ -604,7 +594,8 @@
 
         // ── MORON CHECKER ──────────────────────────────────────────────
         function startMoronTimer() {
-            clearMoronChecker();
+            clearTimeout(mcTimer);
+            cancelAnimationFrame(mcAnimFrame);
             mcStartTime = performance.now();
             tickTimerBar();
             mcTimer = setTimeout(showMoronChecker, mcDuration);
@@ -625,30 +616,34 @@
             clearTimeout(mcTimer);
             cancelAnimationFrame(mcAnimFrame);
             mcTimer = null; mcAnimFrame = null; mcStartTime = null;
+            mcVisible = false;
             document.getElementById('mc-overlay').classList.remove('visible');
             document.getElementById('timer-bar').style.width = '100%';
+        }
+
+        function dismissMoronChecker() {
+            if (!mcVisible) return;
+            mcVisible = false;
+            document.getElementById('mc-overlay').classList.remove('visible');
+            document.getElementById('answer-input').focus();
         }
 
         function showMoronChecker() {
             if (!current) return;
             const [qa, qb] = current;
-            const isRelaxed = mcDuration > 2500;
-            const label = isRelaxed
-                ? `yeah — ${qa} × ${qb}`
-                : `moron checker — ${qa} × ${qb}`;
+            const label = mcDuration > 2500 ? `yeah — ${qa} × ${qb}` : `moron checker — ${qa} × ${qb}`;
             document.getElementById('mc-label').textContent = label;
             buildMCGrid(qa, qb);
+            mcVisible = true;
             document.getElementById('mc-overlay').classList.add('visible');
         }
 
         function buildMCGrid(qa, qb) {
-            // Show the full 2–12 table with the answer cell lit up
             const table = document.getElementById('mc-grid');
             table.innerHTML = '';
             const cols = [];
             for (let c = 2; c <= 12; c++) cols.push(c);
 
-            // header row
             const thead = document.createElement('tr');
             const corner = document.createElement('td');
             corner.className = 'mc-header';
@@ -662,7 +657,6 @@
             }
             table.appendChild(thead);
 
-            // data rows
             for (let r = 2; r <= 12; r++) {
                 const tr = document.createElement('tr');
                 const rh = document.createElement('td');
@@ -683,7 +677,6 @@
                 table.appendChild(tr);
             }
         }
-        // ────────────────────────────────────────────────────────────────
 
         function getHintText(a, b) {
             const key = String(Math.min(a, b)), other = Math.max(a, b);
@@ -696,6 +689,8 @@
 
         function submitAnswer() {
             if (!current) return;
+            // if moron checker is up, dismiss it and wait for next attempt
+            if (mcVisible) { dismissMoronChecker(); return; }
             clearMoronChecker();
             const inp = document.getElementById('answer-input');
             const val = parseInt(inp.value);
@@ -720,13 +715,14 @@
                 missed[key].count++;
                 queue.unshift(current);
                 updateStats();
+                // show the grid immediately on wrong answer
                 showMoronChecker();
                 setTimeout(() => {
-                    inp.value = ''; inp.className = 'answer-input'; inp.focus();
+                    inp.value = ''; inp.className = 'answer-input';
                     document.getElementById('feedback').textContent = '';
                     document.getElementById('feedback').className = 'feedback';
-                    startMoronTimer();
-                }, 2000);
+                    // leave grid visible — user dismisses when ready
+                }, 500);
             }
         }
 
@@ -767,14 +763,10 @@
             if (e.key === 'Enter') submitAnswer();
         });
 
-        // any keypress dismisses the moron checker and refocuses input
+        // any key EXCEPT Enter dismisses the overlay (Enter is handled by submitAnswer)
         document.addEventListener('keydown', (e) => {
-            const overlay = document.getElementById('mc-overlay');
-            if (overlay.classList.contains('visible')) {
-                overlay.classList.remove('visible');
-                const inp = document.getElementById('answer-input');
-                inp.focus();
-            }
+            if (e.key === 'Enter') return;
+            if (mcVisible) dismissMoronChecker();
         });
 
         startFresh();
