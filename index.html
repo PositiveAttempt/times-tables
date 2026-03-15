@@ -578,29 +578,44 @@
                 padding: 3px 8px;
             }
 
+            /* overlay: only cover the visible area above the keyboard */
+            .mc-overlay {
+                align-items: center;
+                justify-content: flex-start;
+                padding-top: 8px;
+                /* sit above keyboard — roughly top 45% of screen */
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 55%;
+                background: rgba(250,249,247,0.92);
+                backdrop-filter: blur(3px);
+            }
+
             .mc-grid td {
-                width: 26px;
-                height: 26px;
-                font-size: 11px;
+                width: 22px;
+                height: 22px;
+                font-size: 10px;
             }
 
                 .mc-grid td.mc-header {
-                    font-size: 10px;
+                    font-size: 9px;
                 }
 
                 .mc-grid td.mc-highlight {
-                    font-size: 13px;
+                    font-size: 12px;
                 }
 
             .mc-label {
                 font-size: 10px;
                 letter-spacing: .1em;
-                margin-bottom: 8px;
+                margin-bottom: 6px;
             }
 
             .mc-dismiss {
-                font-size: 11px;
-                margin-top: 10px;
+                font-size: 10px;
+                margin-top: 6px;
             }
 
             .done-screen {
@@ -807,6 +822,11 @@
             document.getElementById('mc-overlay').classList.add('visible');
             // keep keyboard up on mobile — refocus input immediately
             document.getElementById('answer-input').focus();
+            // scroll highlighted cell into center view
+            setTimeout(() => {
+                const hl = document.querySelector('.mc-highlight');
+                if (hl) hl.scrollIntoView({ block: 'center', inline: 'center', behavior: 'smooth' });
+            }, 50);
         }
 
         function buildMCGrid(qa, qb) {
