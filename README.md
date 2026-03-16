@@ -3,7 +3,7 @@ discussions about how I suck at maths and essentially for me to
 learn I just need to know if before my brain even assesses wether its right or not.
 juries still out to wether it makes me less shit at maths.
 
-Link: https://positiveattempt.github.io/MWebsite/
+Link: https://positiveattempt.github.io/times-tables/
 
 Alternative, may not work link: https://timestablesdriller.netlify.app/
 
