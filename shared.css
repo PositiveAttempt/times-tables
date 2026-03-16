@@ -125,10 +125,21 @@ body {
     width: 100%;
     max-width: 420px;
     margin-bottom: 1rem;
+    align-items: center;
+}
+
+.input-sep {
+    font-family: 'Libre Baskerville', 'Georgia', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #c8c4bc;
+    flex-shrink: 0;
+    line-height: 1;
 }
 
 .answer-input {
     flex: 1;
+    min-width: 0;
     background: #fff;
     border: 0.5px solid #c8c4bc;
     border-radius: 2px;
@@ -475,6 +486,12 @@ body {
         min-width: 28px;
         text-align: right;
     }
+
+
+#drill-screen {
+    width: 100%;
+    max-width: 420px;
+}
 
 /* ── DESKTOP: MOBILE BREAKPOINT ── */
 @media (max-width: 480px) {
