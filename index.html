@@ -401,17 +401,17 @@
             const now = Date.now();
             while (leafTimestamps.length && leafTimestamps[0] < now - 60000) leafTimestamps.shift();
             const spm = leafTimestamps.length;
+        if (spm < 0.1) {
+            leafTimeout = null;
+            return;
+        }
 
-            if (spm < 15) {
-                leafTimeout = null;
-                return;
-            }
+        //sliding scale
+        const t = Math.max(0, Math.min(1, (spm - 0.1) / 29.9)); // 0 at 0.1spm, 1 at 30spm
+        const baseDelay = 30000 - (t * 27500); // 30s down to 2.5s at peak
+        const jitter = (Math.random() - 0.5) * 800; // ±400ms randomness
+        const delay = Math.max(400, baseDelay + jitter);
 
-            // sliding scale: 15spm = slow, 30spm = fast
-            const t = Math.max(0, Math.min(1, (spm - 15) / 15)); // 0 at 15spm, 1 at 30spm
-            const baseDelay = 15000 - (t * 5000); // 15s down to 10s at peak
-            const jitter = (Math.random() - 0.5) * 800; // ±400ms randomness
-            const delay = Math.max(400, baseDelay + jitter);
 
             spawnLeaf();
             leafTimeout = setTimeout(scheduleNextLeaf, delay);
