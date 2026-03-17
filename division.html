@@ -34,13 +34,14 @@
         <div class="stat"><div class="stat-num" id="s-streak">0</div><div class="stat-label">Streak</div></div>
     </div>
 
+
     <div class="progress-bar-wrap">
         <div class="progress-bar-fill" id="prog-fill" style="width:0%"></div>
+        <div class="progress-bar-wrong" id="prog-wrong" style="width:0%"></div>
     </div>
-
     <div class="settings-row" style="margin-bottom:.5rem">
         <label>Session</label>
-        <span id="sess-25"  class="sess-active" onclick="setSessionSize(25)" style="cursor:pointer;min-width:auto;text-align:left">25</span>
+        <span id="sess-25" class="sess-active" onclick="setSessionSize(25)" style="cursor:pointer;min-width:auto;text-align:left">25</span>
         <span style="color:#c8c4bc;min-width:auto">·</span>
         <span id="sess-50" onclick="setSessionSize(50)" style="cursor:pointer;min-width:auto;text-align:left">50</span>
         <span style="color:#c8c4bc;min-width:auto">·</span>
@@ -167,7 +168,7 @@
             document.getElementById('feedback').className = 'feedback';
             const inp = document.getElementById('answer-input');
             inp.value = ''; inp.className = 'answer-input'; inp.focus();
-            updateProgress(); updateMissed();
+            updateMissed();
             startMCTimer();
         }
 
@@ -283,6 +284,7 @@
                 correct++; streak++; doneCount++;
                 if (missed[key]) { missed[key].count--; if (missed[key].count <= 0) delete missed[key]; }
                 updateStats();
+                updateProgress();
                 setTimeout(nextQuestion, 600);
             } else {
                 inp.className = 'answer-input wrong';
@@ -293,6 +295,7 @@
                 missed[key].count++;
                 queue.unshift(current);
                 updateStats();
+                updateProgress();
                 showMC();
                 setTimeout(() => {
                     inp.value = ''; inp.className = 'answer-input';

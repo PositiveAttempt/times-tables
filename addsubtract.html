@@ -115,8 +115,10 @@
         <div class="stat"><div class="stat-num" id="s-streak">0</div><div class="stat-label">Streak</div></div>
     </div>
 
+
     <div class="progress-bar-wrap">
         <div class="progress-bar-fill" id="prog-fill" style="width:0%"></div>
+        <div class="progress-bar-wrong" id="prog-wrong" style="width:0%"></div>
     </div>
 
     <div class="settings-row" style="margin-bottom:.5rem">
@@ -125,7 +127,7 @@
         <span style="color:#c8c4bc;min-width:auto">·</span>
         <span id="sess-50" onclick="setSessionSize(50)" style="cursor:pointer;min-width:auto;text-align:left">50</span>
         <span style="color:#c8c4bc;min-width:auto">·</span>
-        <span id="sess-full"  onclick="setSessionSize(0)" style="cursor:pointer;min-width:auto;text-align:left;">Full</span>
+        <span id="sess-full" onclick="setSessionSize(0)" style="cursor:pointer;min-width:auto;text-align:left;">Full</span>
     </div>
 
     <div class="settings-row">
@@ -403,9 +405,9 @@
 
             const stepsHTML = rows.map(r => `<div class="mc-step">${r}</div>`).join('');
             return `<div class="mc-strategy-label">${strategyName}</div>
-                        <hr class="mc-fact-divider">
-                        ${stepsHTML}
-                        <div class="mc-step answer">= <strong>${answer}</strong></div>`;
+                            <hr class="mc-fact-divider">
+                            ${stepsHTML}
+                            <div class="mc-step answer">= <strong>${answer}</strong></div>`;
         }
 
         // ── HINT TEXT (shown on "Show hint" click, before submission) ───
@@ -522,7 +524,7 @@
             document.getElementById('feedback').className = 'feedback';
             const inp = document.getElementById('answer-input');
             inp.value = ''; inp.className = 'answer-input'; inp.focus();
-            updateProgress(); updateMissed();
+            updateMissed();
             startMCTimer();
         }
 
@@ -575,6 +577,7 @@
                 correct++; streak++; doneCount++;
                 if (missed[key]) { missed[key].count--; if (missed[key].count <= 0) delete missed[key]; }
                 updateStats();
+                updateProgress();
                 setTimeout(nextQuestion, 600);
             } else {
                 inp.className = 'answer-input wrong';
@@ -585,6 +588,7 @@
                 missed[key].count++;
                 queue.unshift(current);
                 updateStats();
+                updateProgress();
                 showMC();
                 setTimeout(() => {
                     inp.value = ''; inp.className = 'answer-input';

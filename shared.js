@@ -68,11 +68,15 @@ function updateStats() {
 }
 
 function updateProgress() {
-    const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
-    document.getElementById('prog-fill').style.width = pct + '%';
+    const done = total > 0 ? (doneCount / (doneCount + queue.length)) * 100 : 0;
+    const pendingWrong = Object.keys(missed).length;
+    const wrongPct = Math.min((pendingWrong / (doneCount + queue.length + pendingWrong)) * 100, 100 - done);
+    document.getElementById('prog-fill').style.width = done + '%';
+    const wrongEl = document.getElementById('prog-wrong');
+    if (wrongEl) wrongEl.style.width = wrongPct + '%';
 }
 
-// ── HISTORY ──────────────────────────────────────────────────────────────────
+// ── HISTORY ──────────────────────────────────────────────────────────────────next
 
 function fmtDrillTime(ms) {
     const s = Math.round(ms / 1000);
