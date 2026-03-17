@@ -445,7 +445,7 @@
         // ── FLOW ────────────────────────────────────────────────────────
 
         function setMode(mode) {
-            window.idleQuestionValue = mode === 'singles' ? 0.3 : 1;
+            window.idleQuestionValue = mode === 'singles' ? 0.1 : 2;
             currentMode = mode;
             document.querySelectorAll('.mode-btn').forEach(btn =>
                 btn.classList.toggle('active', btn.dataset.mode === mode)

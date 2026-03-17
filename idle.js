@@ -262,6 +262,7 @@
                             path.indexOf('addsubtract') !== -1 ? (window.idleQuestionValue || 0.3) :
                                 path.indexOf('fractions') !== -1 ? 5 :
                                     0.1;
+                
                 award(award_amount);
                 save();
             }
