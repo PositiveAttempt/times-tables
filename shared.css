@@ -1083,7 +1083,7 @@ html.dark #dark-toggle { color: #6a6660; }
     font-size: 15px;
     color: #8a8680;
     font-style: italic;
-    margin-bottom: 2rem;
+    margin-bottom: 0.75rem;
 }
 
 .done-btn {
