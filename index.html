@@ -48,7 +48,7 @@
         <span style="color:#c8c4bc;min-width:auto">·</span>
         <span id="sess-50" onclick="setSessionSize(50)" style="cursor:pointer;min-width:auto;text-align:left">50</span>
         <span style="color:#c8c4bc;min-width:auto">·</span>
-        <span id="sess-full"  onclick="setSessionSize(0)" style="cursor:pointer;min-width:auto;text-align:left;">Full</span>
+        <span id="sess-full" onclick="setSessionSize(0)" style="cursor:pointer;min-width:auto;text-align:left;">Full</span>
     </div>
 
     <div class="settings-row">
@@ -82,7 +82,7 @@
     </div>
 
     <div class="done-screen" id="done-screen">
-        <div class="done-panel">
+        <div class="done-panel" id="done-panel">
             <div class="done-title" id="done-title">Complete.</div>
             <div class="done-sub" id="done-sub"></div>
             <div class="done-sub" id="done-time"></div>
@@ -311,20 +311,31 @@
         function showDone() {
             clearMC();
             document.getElementById('drill-screen').style.display = 'none';
-            document.getElementById('done-screen').style.display = 'flex';
+            const doneScreen = document.getElementById('done-screen');
+            doneScreen.style.display = 'flex';
             const elapsed = drillStart ? Date.now() - drillStart : 0;
             const timeStr = fmtDrillTime(elapsed);
             const sessionLabel = sessionSize === 0 ? 'Full' : String(sessionSize);
             const t = correct + wrong;
             const pct = t > 0 ? Math.round((correct / t) * 100) : 0;
-            const spm = elapsed > 0 ? Math.round(t / (elapsed / 60000)) : 0;
-            document.getElementById('done-title').textContent = pct >= 90 ? 'Excellent.' : pct >= 70 ? 'Good progress.' : 'Keep going.';
-            document.getElementById('done-sub').textContent = `${correct} correct, ${wrong} missed — ${pct}% accuracy`;
-            document.getElementById('done-time').textContent = timeStr + ' · ' + sessionLabel;
-            document.getElementById('missed-only-btn').style.display = Object.keys(missed).length ? 'inline-block' : 'none';
-            const hist = saveDrillResult('history_multiply', pct, timeStr, sessionLabel, spm);
-            document.getElementById('done-history').innerHTML = renderDrillHistory(hist);
+            const rating = pct >= 90 ? 'Excellent.' : pct >= 70 ? 'Good progress.' : 'Keep going.';
+            const { hist, lb, isNewBest } = saveDrillResult('history_multiply', 'history_multiply_' + (sessionSize === 0 ? 'full' : sessionSize), pct, timeStr, sessionLabel);
+            const hasMissed = Object.keys(missed).length > 0;
+
+            document.getElementById('done-panel').innerHTML = `
+                    <div class="done-title">${rating}</div>
+                    <div class="arcade-run">
+                        <span class="arcade-run-pct${isNewBest ? ' new-best' : ''}">${pct}%</span>
+                        <span class="arcade-run-meta">${correct} correct · ${wrong} missed · ${timeStr} · ${sessionLabel}</span>
+                    </div>
+                    <div class="done-buttons" style="margin-bottom:1.8rem">
+                        <button class="restart-btn" onclick="startFresh()">Full drill again</button>
+                        ${hasMissed ? '<button class="missed-only-btn" onclick="drillMissed()">Missed only</button>' : ''}
+                    </div>
+                    ${renderArcadePanels(hist, lb, isNewBest)}
+                `;
         }
+
 
         document.getElementById('answer-input').addEventListener('keydown', e => {
             if (e.key === 'Enter') submitAnswer();
@@ -336,6 +347,7 @@
         });
 
         startFresh();
+        initLeaderboardShortcut('history_multiply', () => 'history_multiply_' + (sessionSize === 0 ? 'full' : sessionSize));
 
         // ── FALLING LEAF FLOW STATE ──────────────────────────────
         const leafTimestamps = [];
@@ -351,13 +363,13 @@
 
             const id = 'leaf' + Date.now() + Math.random().toString().replace('.', '');
             const style = `
-        @keyframes ${id} {
-    0%   { transform: translateY(-40px)  translateX(0px)   rotate(-5deg); }
-        30%  { transform: translateY(30vh)   translateX(40px)  rotate(2deg);  }
-        60%  { transform: translateY(65vh)   translateX(20px)  rotate(-3deg); }
-        100% { transform: translateY(105vh)  translateX(50px)  rotate(1deg);  }
-        }
-    `;
+            @keyframes ${id} {
+        0%   { transform: translateY(-40px)  translateX(0px)   rotate(-5deg); }
+            30%  { transform: translateY(30vh)   translateX(40px)  rotate(2deg);  }
+            60%  { transform: translateY(65vh)   translateX(20px)  rotate(-3deg); }
+            100% { transform: translateY(105vh)  translateX(50px)  rotate(1deg);  }
+            }
+        `;
             const styleEl = document.createElement('style');
             styleEl.textContent = style;
             document.head.appendChild(styleEl);
@@ -367,20 +379,20 @@
             svg.setAttribute('height', '32');
             svg.setAttribute('viewBox', '0 0 18 32');
             svg.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: ${x}%;
-        pointer-events: none;
-        z-index: 5;
-        animation: ${id} ${dur}ms linear forwards;
-    `;
+            position: fixed;
+            top: 0;
+            left: ${x}%;
+            pointer-events: none;
+            z-index: 5;
+            animation: ${id} ${dur}ms linear forwards;
+        `;
 
             const petals = [
                 // flat face-on petal
                 'M10 2 C14 2 18 6 18 10 C18 14 14 17 10 17 C6 17 2 14 2 10 C2 6 6 2 10 2Z',
                 // sideways slim petal
                 'M2 10 C2 5 6 1 10 2 C16 3 20 7 18 10 C16 13 10 18 4 17 C1 15 2 13 2 10Z',
-                // tilted elongated petal  
+                // tilted elongated petal
                 'M4 2 C10 1 18 4 18 9 C18 14 12 19 7 18 C2 17 0 13 1 8 C2 4 4 2 4 2Z',
                 // small curled petal
                 'M8 1 C13 0 19 5 17 10 C15 15 9 19 5 16 C1 13 1 7 4 4 C6 2 8 1 8 1Z',
@@ -401,16 +413,16 @@
             const now = Date.now();
             while (leafTimestamps.length && leafTimestamps[0] < now - 60000) leafTimestamps.shift();
             const spm = leafTimestamps.length;
-        if (spm < 0.1) {
-            leafTimeout = null;
-            return;
-        }
+            if (spm < 0.1) {
+                leafTimeout = null;
+                return;
+            }
 
-        //sliding scale
-        const t = Math.max(0, Math.min(1, (spm - 0.1) / 29.9)); // 0 at 0.1spm, 1 at 30spm
-        const baseDelay = 30000 - (t * 27500); // 30s down to 2.5s at peak
-        const jitter = (Math.random() - 0.5) * 800; // ±400ms randomness
-        const delay = Math.max(400, baseDelay + jitter);
+            //sliding scale
+            const t = Math.max(0, Math.min(1, (spm - 0.1) / 29.9)); // 0 at 0.1spm, 1 at 30spm
+            const baseDelay = 30000 - (t * 27500); // 30s down to 2.5s at peak
+            const jitter = (Math.random() - 0.5) * 800; // ±400ms randomness
+            const delay = Math.max(400, baseDelay + jitter);
 
 
             spawnLeaf();
