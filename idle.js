@@ -211,7 +211,7 @@
         state.points += n;
   
         }
-    }
+    
 
     function updateUI() {
         if (!totalEl) return;
