@@ -72,10 +72,14 @@
     // ── canvas positioning ────────────────────────────────────────────────────
     function positionCanvas() {
         var card = document.querySelector('.card');
-        if (!card) return;
-        var rect = card.getBoundingClientRect();
-        cardLeft = Math.round(rect.left);
-        CW = Math.round(rect.width);
+        if (!card) {
+            cardLeft = 0;
+            CW = window.innerWidth;
+        } else {
+            var rect = card.getBoundingClientRect();
+            cardLeft = Math.round(rect.left);
+            CW = Math.round(rect.width);
+        }
         canvasEl.style.left = cardLeft + 'px';
         canvasEl.style.right = '';
         canvasEl.style.width = CW + 'px';
