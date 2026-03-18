@@ -529,7 +529,8 @@
         #idle-topbar-gen-track {
             width: 48px;
             height: 1px;
-            background: #e0ddd8;
+            background: transparent;
+            overflow: hidden;
         }
         #idle-topbar-gen-bar {
             height: 100%;
@@ -544,7 +545,7 @@
             color: #aaa69e;
             min-width: 24px;
         }
-        html.dark #idle-topbar-gen-track { background: #252830; }
+        html.dark #idle-topbar-gen-track { background: transparent; }
         html.dark #idle-topbar-gen-bar { background: #c8c4bc; }
         html.dark #idle-topbar-money { color: #6a6660; }
     `;
