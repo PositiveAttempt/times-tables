@@ -104,7 +104,8 @@
             enemyEl.style.left = Math.round(cardLeft + enemy.x - SHIP_W / 2) + 'px';
             enemyEl.style.right = '';
             enemyEl.style.top = Math.round(enemy.y - SHIP_H / 2) + 'px';
-            enemyEl.style.filter = enemy.flash > 0 ? 'brightness(2)' : 'none';
+            var dark = document.documentElement.classList.contains('dark');
+            enemyEl.style.filter = enemy.flash > 0 ? (dark ? 'invert(1) brightness(2)' : 'brightness(2)') : (dark ? 'invert(1)' : 'none');
             enemyEl.style.display = 'block';
         } else {
             enemyEl.style.display = 'none';
@@ -455,6 +456,8 @@
             image-rendering: crisp-edges;
         }
         #idle-ship.on { opacity: 0.95; }
+        html.dark #idle-ship { filter: invert(1); }
+
 
         #idle-enemy {
             position: fixed;
@@ -469,6 +472,8 @@
             transform-origin: center center;
         }
         #idle-enemy.on { opacity: 0.85; }
+        html.dark #idle-enemy { filter: invert(1); }
+
 
         @keyframes idle-kill {
             0%   { transform: translate(0px,0px)   scale(1);    opacity: 1; }
