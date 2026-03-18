@@ -50,11 +50,13 @@
     // ── generator — energy = bullets ─────────────────────────────────────────
     //   correct answer tops it up, each bullet fired drains it,
     //   barely ticks down when idle so you can see sums refilling it
-    var gen = 0;
     var GEN_MAX = 100;
+    var gen = GEN_MAX;
     var GEN_AWARD = 28;   // per correct answer
-    var GEN_COST = 1;    // per bullet fired
+    var GEN_COST = 1.5;    // per bullet fired
     var GEN_IDLE = 0.3;  // per second passive drain (near-zero)
+    var GEN_REGEN = 0.45;
+
 
     //money
     var money = parseInt(localStorage.getItem('idle_money') || '0', 10);
@@ -218,7 +220,7 @@
         if (flightState === 'grounded' || flightState === 'ignition') return;
 
         // near-zero idle drain — barely visible, so sums clearly top it up
-        gen = Math.max(0, gen - GEN_IDLE * dt);
+        gen = Math.min(GEN_MAX, Math.max(0, gen - GEN_IDLE * dt + GEN_REGEN * dt));
 
         tryFire(now);
 
@@ -383,35 +385,37 @@
         #idle-panel.on { transform: translateX(0); }
 
         #idle-spm {
-            font-size: 14px;
+            font-size: 32px;
             color: #aaa69e;
             letter-spacing: .08em;
             font-style: italic;
-            min-height: 16px;
-            margin-bottom: 1.8rem;
+            min-height: 32px;
+            margin-bottom: 0rem;
         }
 
-        #idle-gen-label {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: .16em;
-            color: #c8c4bc;
-            margin-bottom: 7px;
-        }
-        #idle-gen-track { width: 100%; height: 2px; background: #e8e4dc; overflow: hidden; }
-        #idle-gen-bar { height: 100%; width: 0%; background: #1a1916; transition: width .08s linear; }
-
+        
         #idle-money-label {
             font-size: 10px;
             text-transform: uppercase;
             letter-spacing: .16em;
             color: #c8c4bc;
             margin-bottom: 4px;
-            margin-top: 1.4rem;
+            margin-top: 0rem;
         }
-        #idle-money { font-size: 22px; letter-spacing: .04em; color: #1a1916; line-height: 1; }
+        #idle-money { font-size: 22px; letter-spacing: .04em; color: #1a1916; line-height: 1; margin-bottom: 1.2rem; }
         html.dark #idle-money-label { color: #3d4148; }
         html.dark #idle-money { color: #c8c4bc; }
+
+        #idle-gen-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .16em;
+            color: #c8c4bc;
+            margin-bottom: 10px;
+        }
+        #idle-gen-track { width: 100%; height: 2px; background: #e8e4dc; overflow: hidden; }
+        #idle-gen-bar { height: 100%; width: 0%; background: #1a1916; transition: width .08s linear; }
+
 
         #idle-lock {
             font-size: 10px;
@@ -443,6 +447,8 @@
             transition: opacity 1.2s ease;
         }
         #idle-canvas.on { opacity: 0.5; }
+        html.dark #idle-canvas { filter: invert(1); }
+
 
         #idle-ship {
             position: fixed;
@@ -592,7 +598,7 @@
 
         ship.x = CW / 2;
         ship.y = MOBILE ? CH * 0.80 : CH * 0.80;
-        ship.worldY = CH * 0.25; 
+        ship.worldY = CH * 0.2;
         updateShipDom();
 
         if (MOBILE) {
@@ -652,6 +658,16 @@
             spmEl.id = 'idle-spm';
             panelEl.appendChild(spmEl);
 
+            var moneyLabel = document.createElement('div');
+            moneyLabel.id = 'idle-money-label';
+            moneyLabel.textContent = 'money';
+            panelEl.appendChild(moneyLabel);
+
+            moneyEl = document.createElement('div');
+            moneyEl.id = 'idle-money';
+            moneyEl.textContent = money;
+            panelEl.appendChild(moneyEl);
+
             var genLabel = document.createElement('div');
             genLabel.id = 'idle-gen-label';
             genLabel.textContent = 'gen';
@@ -662,17 +678,7 @@
             genBarEl = document.createElement('div');
             genBarEl.id = 'idle-gen-bar';
             genTrack.appendChild(genBarEl);
-            panelEl.appendChild(genTrack);
-
-            var moneyLabel = document.createElement('div');
-            moneyLabel.id = 'idle-money-label';
-            moneyLabel.textContent = 'money';
-            panelEl.appendChild(moneyLabel);
-
-            moneyEl = document.createElement('div');
-            moneyEl.id = 'idle-money';
-            moneyEl.textContent = money;
-            panelEl.appendChild(moneyEl);
+            panelEl.appendChild(genTrack);      
 
             lockBtn = document.createElement('button');
             lockBtn.id = 'idle-lock';
@@ -768,7 +774,7 @@
 
     function updateUI() {
         if (!spmEl) return;
-        spmEl.textContent = correctCount > 0 ? getSPM() + '\u2009/spm' : '';
+        spmEl.textContent = getSPM() + '\u2009/spm';
     }
 
     // ── submit patch ──────────────────────────────────────────────────────────
@@ -814,7 +820,7 @@
         spawnLevel();
         enemy = null;
         enemyRespawnTimer = 17;   // seconds before first enemy appears
-        ship.worldY = CH * 0.25;
+        ship.worldY = CH * 0.2;
         updateUI();
         lastRaf = performance.now();
         requestAnimationFrame(rafLoop);
