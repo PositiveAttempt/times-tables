@@ -643,7 +643,7 @@
             const now = Date.now();
             while (leafTimestamps.length && leafTimestamps[0] < now - 60000) leafTimestamps.shift();
             const spm = leafTimestamps.length;
-            if (spm < 0.1) {
+            if (spm < 100) {
                 leafTimeout = null;
                 return;
             }
