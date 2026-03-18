@@ -591,7 +591,7 @@
         positionCanvas();
 
         ship.x = CW / 2;
-        ship.y = MOBILE ? CH * 0.45 : CH * 0.80;
+        ship.y = MOBILE ? CH * 0.80 : CH * 0.80;
         ship.worldY = CH * 0.25; 
         updateShipDom();
 
