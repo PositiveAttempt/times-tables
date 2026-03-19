@@ -199,9 +199,9 @@
     }
 
     // ── create sprite element for a spawned enemy ─────────────────────────────
-    function createEnemySpriteEl() {
+    function createEnemySpriteEl(type) {
         var el = document.createElement('img');
-        el.src = 'assets/enemy1.png';
+        el.src = type === 2 ? 'assets/enemy2.png' : 'assets/enemy1.png';
         el.style.cssText = 'position:fixed;pointer-events:none;z-index:2;width:' + SHIP_W + 'px;height:auto;opacity:0;image-rendering:pixelated;image-rendering:crisp-edges;transform-origin:center center;transition:opacity 1.4s ease';
         document.body.appendChild(el);
         if (open || locked) el.style.opacity = '0.85';
@@ -210,7 +210,8 @@
 
     // ── level / enemy spawn ───────────────────────────────────────────────────
     function spawnEnemyWave(hp, vy) {
-        var el = createEnemySpriteEl();
+        var type = (hp >= ENEMY_TYPE2_HP) ? 2 : 1;
+        var el = createEnemySpriteEl(type);
         var w = enemyEl.naturalWidth || 16;
         var h = enemyEl.naturalHeight || 16;
         var baseVy = (vy || 70) + scrollSpeed() * 0.25;
@@ -1183,7 +1184,7 @@
                     var kbH = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
                     toggleEl.style.bottom = (kbH + 96) + 'px';
                 }
-                if (flightState === 'grounded') { ship.y = CH * 0.75; }
+                if (flightState === 'grounded') { ship.y = CH * 0.80; }
                 updateShipDom();
             }
             window.visualViewport.addEventListener('resize', updateCanvasToViewport);
