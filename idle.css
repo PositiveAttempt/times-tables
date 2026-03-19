@@ -79,13 +79,25 @@ body.idle-minimal .input-row {
     justify-content: center;
 }
 
-body.idle-minimal .feedback {
-    visibility: hidden;
-}
+    body.idle-minimal .feedback {
+        visibility: visible;
+        position: relative;
+        top: -6rem;
+    }
 
 body.idle-minimal .missed-section {
     visibility: hidden;
 }
+
+    body.idle-minimal .nav-links {
+        visibility: visible;
+        position: fixed;
+        left: 1.5rem;
+        top: 1.5rem;
+        flex-direction: column;
+        gap: 16px;
+        align-items: flex-start;
+    }
 
 #idle-toggle {
             position: fixed;
