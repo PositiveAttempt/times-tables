@@ -1,0 +1,13 @@
+/* ── IDLE MINIMAL MODE ────────────────────────────────────────────────────────
+   body.idle-minimal is toggled by idle.js whenever the canvas panel is
+   open or locked, stripping distracting chrome so the shmup backdrop shows.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+body.idle-minimal .stats-row {
+    border: none;
+    background: transparent;
+}
+
+body.idle-minimal .stat {
+    border: none;
+}
