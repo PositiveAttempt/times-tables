@@ -4,17 +4,13 @@
     // ── PNG ASSETS ────────────────────────────────────────────────────────────
     //
     //  assets/sea-far.png   — CW × 400 px, tileable vertically
-    //                         far/slow parallax layer, scrolls at 0.45× speed
-    //
     //  assets/sea-near.png  — CW × 400 px, tileable vertically
-    //                         near/fast parallax layer, scrolls at 1× speed
-    //
     //  assets/ship.png      — 48 × 64 px, top-down pointing up, transparent bg
-    //                         image-rendering: pixelated is set so pixel art stays crisp
     //
     // ─────────────────────────────────────────────────────────────────────────
 
     var panelEl, toggleEl, spmEl, genBarEl, lockBtn, shipEl, moneyEl, canvasEl, ctx;
+    var secondarySlotEl = null;   // the purchaseable square in the loadout
 
     var gameOver = false;
     var gameOverEl = null;
@@ -40,50 +36,109 @@
     imgFar.src = 'assets/sea-far.png';
     imgNear.src = 'assets/sea-near.png';
 
-    // ── scroll ────────────────────────────────────────────────────────────────
-
     var lastRaf = performance.now();
 
     // ── flight ────────────────────────────────────────────────────────────────
     var flightState = 'grounded';
     var ship = { x: 0, y: 0, vx: 0, vy: 0, worldY: 0 };
 
-
-    // ── generator — energy = bullets ─────────────────────────────────────────
-    //   correct answer tops it up, each bullet fired drains it,
-    //   barely ticks down when idle so you can see sums refilling it
+    // ── generator ─────────────────────────────────────────────────────────────
     var GEN_MAX = 100;
     var gen = GEN_MAX;
-    var GEN_AWARD = 28;   // per correct answer
-    var GEN_COST = 1.5;    // per bullet fired
-    var GEN_IDLE = 0.3;  // per second passive drain (near-zero)
-    var GEN_REGEN = 0.45;
+    var GEN_AWARD = 28;
+    var GEN_COST = 1.5;
+    var GEN_IDLE = 0.8;
+    var GEN_REGEN = 0.2;
 
+    // ── weapon slots ──────────────────────────────────────────────────────────
+    //
+    //  PRIMARY   accepts: 'vulcan'   — always equipped, cannot be removed
+    //  SECONDARY accepts: 'missile'  — empty by default, purchased with money
+    //
+    //  Set secondaryWeapon = null to leave the slot empty.
+    //
+    var PRIMARY_TYPES = { vulcan: true };
+    var SECONDARY_TYPES = { missile: true };
 
-    //money────────────────────────────────────────────────────────────────
+    var MISSILE_PRICE = 50;   // cost to unlock the missile slot
+
+    var primaryWeapon = { type: 'vulcan' };
+    var secondaryWeapon = null;   // starts empty — buy it in the panel
+
+    // ── projectiles ───────────────────────────────────────────────────────────
+    var bullets = [];
+    var missiles = [];
+
+    // ── money ─────────────────────────────────────────────────────────────────
     var money = parseInt(localStorage.getItem('idle_money') || '0', 10);
     var MONEY_PER_KILL = 5;
 
-    // ── armour ────────────────────────────────────────────────────────────────
+    // ── shields / armour ──────────────────────────────────────────────────────
     var SHIELD_MAX = 80;
     var ARMOUR_MAX = 20;
     var shields = SHIELD_MAX;
     var armour = ARMOUR_MAX;
-    var SHIELD_REGEN = 12;  // points/sec at full gen
+    var SHIELD_REGEN = 12;
     var armourBarEl;
 
-    // ── combat ────────────────────────────────────────────────────────────────    
-    var bullets = [];
+    // ── enemies ───────────────────────────────────────────────────────────────
     var enemies = [];
     var enemyBullets = [];
-    var ENEMY_FIRE_RATE = 1.8;  // seconds between shots, tune this
+    var ENEMY_FIRE_RATE = 1.8;
     var obstacles = [];
     var lastFireMs = 0;
     var enemyRespawnTimer = 0;
 
+    // ── wave system ───────────────────────────────────────────────────────────
+    var waves = [
+        { label: 'trickle', duration: 14, gap: 3.5, enemyHp: 3, enemyVy: 70 },
+        { label: 'swarm', duration: 10, gap: 1.2, enemyHp: 2, enemyVy: 90 },
+        { label: 'silence', duration: 5, gap: 999, enemyHp: 3, enemyVy: 70 },
+        { label: 'swarm', duration: 12, gap: 0.8, enemyHp: 2, enemyVy: 110 },
+        { label: 'silence', duration: 4, gap: 999, enemyHp: 3, enemyVy: 70 },
+        { label: 'heavy', duration: 15, gap: 2.2, enemyHp: 5, enemyVy: 55 },
+        { label: 'silence', duration: 6, gap: 999, enemyHp: 3, enemyVy: 70 },
+        { label: 'climax', duration: 10, gap: 0.5, enemyHp: 2, enemyVy: 130 },
+        { label: 'silence', duration: 8, gap: 999, enemyHp: 3, enemyVy: 70 },
+    ];
+    var waveIndex = 0;
+    var waveTimer = 0;
+
+    function updateWave(dt) {
+        var w = waves[waveIndex];
+        enemyRespawnTimer -= dt;
+        if (enemyRespawnTimer <= 0 && w.label !== 'silence' && enemies.length < 6) {
+            spawnEnemyWave(w);
+            enemyRespawnTimer = w.gap + Math.random() * 0.4;
+        }
+        waveTimer += dt;
+        if (waveTimer >= w.duration) {
+            waveTimer = 0;
+            waveIndex = (waveIndex + 1) % waves.length;
+            enemyRespawnTimer = waves[waveIndex].gap * 0.5;
+        }
+    }
+
+    function spawnEnemyWave(w) {
+        var el = makeEnemyEl(w.enemyHp > 4 ? 2 : 1);
+        enemies.push({
+            el: el,
+            x: CW * 0.2 + Math.random() * CW * 0.6,
+            y: -SHIP_H,
+            hp: w.enemyHp,
+            maxHp: w.enemyHp,
+            vy: w.enemyVy + scrollSpeed() * 0.25,
+            phase: Math.random() * Math.PI * 2,
+            flash: 0,
+            lastFireMs: 0,
+            hw: 16 * 1.5,
+            hh: 16 * 1.5,
+        });
+    }
+
     var burnFrame = 0;
     var burnTimer = 0;
-    var BURN_INTERVAL = 0.56;  // seconds between frame swap, tune to taste
+    var BURN_INTERVAL = 0.56;
 
     // ── canvas positioning ────────────────────────────────────────────────────
     function positionCanvas() {
@@ -103,7 +158,6 @@
         canvasEl.height = CH;
     }
 
-    // ship DOM element tracks ship.x / ship.y in canvas space each frame
     function updateShipDom() {
         if (!shipEl) return;
         shipEl.style.left = Math.round(cardLeft + ship.x - SHIP_W / 2) + 'px';
@@ -131,39 +185,40 @@
         return 5 + Math.min(spm * 20, 150);
     }
 
-    // ── level / enemy spawn ───────────────────────────────────────────────────
+    // ── enemy spawn ───────────────────────────────────────────────────────────
     function spawnEnemy() {
-        var el = makeEnemyEl();
-        var w = el.naturalWidth || 16;
-        var h = el.naturalHeight || 16;
+        var type = Math.random() < 0.75 ? 1 : 2;
+        var el = makeEnemyEl(type);
         enemies.push({
             el: el,
             x: CW * 0.2 + Math.random() * CW * 0.6,
             y: -SHIP_H,
-            hp: 3,
-            maxHp: 3,
+            hp: type === 1 ? 3 : 9,
+            maxHp: type === 1 ? 3 : 9,
             vy: 70 + scrollSpeed() * 0.25,
             phase: Math.random() * Math.PI * 2,
             flash: 0,
             lastFireMs: 0,
-            hw: w * 1.5 * SCALE,
-            hh: h * 1.5 * SCALE,
+            hw: SHIP_W * 1.5,
+            hh: SHIP_H * 1.5,
         });
     }
 
+    window._spawnEnemy = spawnEnemy;
+
     function spawnLevel() {
-        // 1 or 2 obstacles in the middle zone
         obstacles = [];
         bullets = [];
+        missiles = [];
     }
 
-    // ── steering — 2D vector forces ───────────────────────────────────────────
+    // ── steering ──────────────────────────────────────────────────────────────
     function steer(dt) {
         if (flightState === 'grounded' || flightState === 'ignition') return;
 
         if (flightState === 'cruising') {
             var spd = Math.sqrt(ship.vx * ship.vx + ship.vy * ship.vy);
-            if (spd > 20) {   // only animate when actually moving
+            if (spd > 20) {
                 burnTimer += dt;
                 if (burnTimer >= BURN_INTERVAL) {
                     burnTimer = 0;
@@ -171,12 +226,12 @@
                     shipEl.src = burnFrame === 0 ? 'assets/ship-cruise.png' : 'assets/ship-cruise2.png';
                 }
             } else {
-                shipEl.src = 'assets/ship-cruise.png';  // settled back to frame 1
+                shipEl.src = 'assets/ship-cruise.png';
                 burnFrame = 0;
             }
         }
-        var fx = 0, fy = 0;
 
+        var fx = 0, fy = 0;
         var target = null;
         for (var i = 0; i < enemies.length; i++) {
             if (!target || enemies[i].y > target.y) target = enemies[i];
@@ -191,21 +246,16 @@
             fy += ((MOBILE ? CH * 0.35 : CH * 0.75) - ship.y) * 1.8;
         }
 
-
-
-        // canvas boundary forces
         var m = 38 * SCALE;
         if (ship.x < m) fx += (m - ship.x) * 4;
         if (ship.x > CW - m) fx += (CW - m - ship.x) * 4;
         if (ship.y < m) fy += (m - ship.y) * 4;
         if (ship.y > CH - m) fy += (CH - m - ship.y) * 4;
 
-        // integrate with damping
         var damp = 0.86;
         ship.vx = (ship.vx + fx * dt) * damp;
         ship.vy = (ship.vy + fy * dt) * damp;
 
-        // speed cap
         var spd = Math.sqrt(ship.vx * ship.vx + ship.vy * ship.vy);
         var maxSpd = 155;
         if (spd > maxSpd) { ship.vx *= maxSpd / spd; ship.vy *= maxSpd / spd; }
@@ -214,15 +264,20 @@
         ship.y += ship.vy * dt;
     }
 
-    // ── combat update ─────────────────────────────────────────────────────────
+    // ── fire rate ─────────────────────────────────────────────────────────────
     function fireRate() {
         var spm = parseFloat(getSPM()) || 0;
-        return Math.min(0.6 + spm * 0.22, 7);   // 0.6/s at rest → 7/s at 30 spm
+        return Math.min(0.6 + spm * 0.22, 7);
     }
 
-    function tryFire(now) {
+    // ── primary weapon: vulcan ────────────────────────────────────────────────
+    function tryFirePrimary(now) {
+        if (!primaryWeapon) return;
+        if (!PRIMARY_TYPES[primaryWeapon.type]) return;
+        if (primaryWeapon.type !== 'vulcan') return;
         if (!enemies.length || gen <= 0) return;
         if (now - lastFireMs < 1000 / fireRate()) return;
+
         var best = null;
         for (var i = 0; i < enemies.length; i++) {
             if (Math.abs(ship.x - enemies[i].x) <= 36) {
@@ -230,13 +285,148 @@
             }
         }
         if (!best) return;
+
         var timeToTarget = (ship.y - best.y) / 385;
         var predictedX = best.x + Math.sin(best.phase + timeToTarget * 0.5) * 18 * timeToTarget;
         var vx = (predictedX - ship.x) / timeToTarget;
-        bullets.push({ x: ship.x, y: ship.y - SHIP_H * 0.45, vx: vx, vy: -385 }); gen = Math.max(0, gen - GEN_COST);
+        bullets.push({ x: ship.x, y: ship.y - SHIP_H * 0.45, vx: vx, vy: -385 });
+        gen = Math.max(0, gen - GEN_COST);
         lastFireMs = now;
     }
 
+    // ── secondary weapon: missile ─────────────────────────────────────────────
+    function tryFireSecondary(now) {
+        if (!secondaryWeapon) return;
+        if (!SECONDARY_TYPES[secondaryWeapon.type]) return;
+        if (secondaryWeapon.type !== 'missile') return;
+        if (!enemies.length || gen <= 0) return;
+        if (flightState !== 'cruising') return;
+
+        secondaryWeapon.timer -= (now - (secondaryWeapon._last || now)) / 1000;
+        secondaryWeapon._last = now;
+        if (secondaryWeapon.timer > 0) return;
+
+        var target = null;
+        for (var i = 0; i < enemies.length; i++) {
+            if (!target || enemies[i].y > target.y) target = enemies[i];
+        }
+        if (!target) return;
+
+        var offsets = [-10, 10];
+        for (var o = 0; o < offsets.length; o++) {
+            var dx = target.x - ship.x;
+            var dy = target.y - ship.y;
+            var launchAngle = Math.atan2(dy, dx);
+
+            missiles.push({
+                x: ship.x + offsets[o] * SCALE,
+                y: ship.y - SHIP_H * 0.3,
+                vx: 0,
+                vy: 0,
+                target: target,
+                phase: 'eject',
+                age: 0,
+                angle: launchAngle,
+                ejectOffset: offsets[o],
+                launchDelay: o * 0.05,
+                trail: [],
+            });
+        }
+
+        secondaryWeapon.timer = secondaryWeapon.cooldown;
+        gen = Math.max(0, gen - GEN_COST * 4);
+    }
+
+    // ── missile physics ───────────────────────────────────────────────────────
+    function updateMissiles(dt) {
+        for (var i = missiles.length - 1; i >= 0; i--) {
+            var m = missiles[i];
+            m.age += dt;
+
+            m.trail.push({ x: m.x, y: m.y, age: 0 });
+            for (var t = m.trail.length - 1; t >= 0; t--) {
+                m.trail[t].age += dt;
+                if (m.trail[t].age > 0.35) m.trail.splice(t, 1);
+            }
+
+            if (m.launchDelay > 0) {
+                m.launchDelay -= dt;
+                continue;
+            }
+
+            if (m.phase === 'eject') {
+                var ejectSpd = 28 * SCALE;
+                m.x += (m.ejectOffset > 0 ? 1 : -1) * ejectSpd * dt;
+                m.y += -8 * SCALE * dt;
+                if (m.target && m.target.hp > 0) {
+                    m.angle = Math.atan2(m.target.y - m.y, m.target.x - m.x);
+                }
+                if (m.age > 0.15) { m.phase = 'hang'; m.age = 0; }
+
+            } else if (m.phase === 'hang') {
+                m.x += (m.ejectOffset > 0 ? 1 : -1) * 4 * SCALE * dt;
+                m.y += 2 * SCALE * dt;
+                if (m.target && m.target.hp > 0) {
+                    m.angle = Math.atan2(m.target.y - m.y, m.target.x - m.x);
+                }
+                if (m.age > 0.12) { m.phase = 'lock'; m.age = 0; }
+
+            } else if (m.phase === 'lock') {
+                var spd = Math.min(60 + m.age * 100, 620);
+
+                if (!m.target || m.target.hp <= 0) {
+                    // target gone — commit to last angle, fly straight
+                    m.x += Math.cos(m.angle) * spd * dt;
+                    m.y += Math.sin(m.angle) * spd * dt;
+                } else {
+                    var tx = m.target.x;
+                    var ty = m.target.y;
+                    var ddx = tx - m.x;
+                    var ddy = ty - m.y;
+                    var targetAngle = Math.atan2(ddy, ddx);
+                    var da = targetAngle - m.angle;
+                    while (da > Math.PI) da -= Math.PI * 2;
+                    while (da < -Math.PI) da += Math.PI * 2;
+                    m.angle += da * Math.min(6 * dt * 8, 1);
+                    m.vx = Math.cos(m.angle) * spd;
+                    m.vy = Math.sin(m.angle) * spd;
+                    m.x += m.vx * dt;
+                    m.y += m.vy * dt;
+                }
+            }
+
+            if (m.y < -80 || m.y > CH + 80 || m.x < -80 || m.x > CW + 80) {
+                missiles.splice(i, 1);
+                continue;
+            }
+
+            var hit = false;
+            for (var j = enemies.length - 1; j >= 0; j--) {
+                var e = enemies[j];
+                var hdx = m.x - e.x;
+                var hdy = m.y - e.y;
+                if (Math.abs(hdx) < 22 * SCALE && Math.abs(hdy) < 22 * SCALE) {
+                    e.hp -= 3;
+                    e.flash = 0.2;
+                    if (e.hp <= 0) {
+                        var streakMult = 1 + (window.streak || 0) * 0.1;
+                        var earned = Math.round(MONEY_PER_KILL * streakMult);
+                        money += earned;
+                        localStorage.setItem('idle_money', money);
+                        if (moneyEl) moneyEl.textContent = money;
+                        if (open || locked) spawnKillFloat(e.x, e.y, earned);
+                        e.el.remove();
+                        enemies.splice(j, 1);
+                    }
+                    hit = true;
+                    break;
+                }
+            }
+            if (hit) { missiles.splice(i, 1); continue; }
+        }
+    }
+
+    // ── enemy fire ────────────────────────────────────────────────────────────
     function tryEnemyFire(now) {
         if (flightState !== 'cruising') return;
         for (var i = 0; i < enemies.length; i++) {
@@ -248,35 +438,32 @@
         }
     }
 
+    // ── combat update ─────────────────────────────────────────────────────────
     function updateCombat(now, dt) {
         if (gameOver) return;
         if (flightState === 'grounded' || flightState === 'ignition') return;
 
-        // near-zero idle drain — barely visible, so sums clearly top it up
         gen = Math.min(GEN_MAX, Math.max(0, gen - GEN_IDLE * dt + GEN_REGEN * dt));
 
         var regenRate = SHIELD_REGEN * (gen / GEN_MAX);
         shields = Math.min(SHIELD_MAX, shields + regenRate * dt);
 
-        tryFire(now);
+        tryFirePrimary(now);
+        tryFireSecondary(now);
         tryEnemyFire(now);
 
-
-        // move bullets upward, remove when off-screen
         for (var i = bullets.length - 1; i >= 0; i--) {
             bullets[i].x += (bullets[i].vx || 0) * dt;
             bullets[i].y += bullets[i].vy * dt;
             if (bullets[i].y < -12) bullets.splice(i, 1);
         }
 
-        // move enemy bullets downward
         for (var i = enemyBullets.length - 1; i >= 0; i--) {
             enemyBullets[i].y += enemyBullets[i].vy * dt;
             if (enemyBullets[i].y > CH + 12) {
                 enemyBullets.splice(i, 1);
                 continue;
             }
-            // hit ship?
             var dx = enemyBullets[i].x - ship.x;
             var dy = enemyBullets[i].y - ship.y;
             if (Math.abs(dx) < 18 * SCALE && Math.abs(dy) < 18 * SCALE) {
@@ -321,13 +508,10 @@
             }
         }
 
-        enemyRespawnTimer -= dt;
-        if (enemyRespawnTimer <= 0) {
-            if (enemies.length < 6) spawnEnemy();
-            enemyRespawnTimer = 3 + Math.random() * 7;  // 3–7 seconds
-
-        }
+        updateMissiles(dt);
+        updateWave(dt);
     }
+
     // ── draw ──────────────────────────────────────────────────────────────────
     function drawSeaFar() {
         if (!imgFar.complete || !imgFar.naturalWidth) return;
@@ -355,25 +539,65 @@
         if (screenY >= CH || screenY + SEA_TILE_H <= 0) return;
         ctx.drawImage(imgNear, 0, screenY, CW, SEA_TILE_H);
     }
+
     function drawCombat() {
         if (flightState === 'grounded') return;
         var dark = document.documentElement.classList.contains('dark');
 
-        // bullets — thin vertical streaks
+        // primary bullets
         ctx.fillStyle = dark ? 'rgba(200,196,188,0.9)' : 'rgba(26,25,22,0.85)';
         for (var i = 0; i < bullets.length; i++) {
             ctx.fillRect(bullets[i].x - 1.5 * SCALE, bullets[i].y - 5 * SCALE, 3 * SCALE, 9 * SCALE);
         }
 
-        // enemy bullets — slightly wider, same streak style
+        // enemy bullets
         ctx.fillStyle = dark ? 'rgba(200,196,188,0.5)' : 'rgba(26,25,22,0.45)';
         for (var i = 0; i < enemyBullets.length; i++) {
             ctx.fillRect(enemyBullets[i].x - 2 * SCALE, enemyBullets[i].y - 5 * SCALE, 4 * SCALE, 9 * SCALE);
         }
 
+        // missiles
+        for (var i = 0; i < missiles.length; i++) {
+            var m = missiles[i];
+
+            for (var t = 0; t < m.trail.length; t++) {
+                var tf = 1 - (m.trail[t].age / 0.35);
+                ctx.globalAlpha = tf * (m.phase === 'lock' ? 0.55 : 0.18);
+                var ts = (m.phase === 'lock' ? 2.5 : 1.5) * tf * SCALE;
+                ctx.fillStyle = dark ? '#c8c4bc' : '#1a1916';
+                ctx.beginPath();
+                ctx.arc(m.trail[t].x, m.trail[t].y, ts, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+
+            ctx.save();
+            ctx.translate(m.x, m.y);
+            ctx.rotate(m.angle + Math.PI / 2);
+            ctx.globalAlpha = m.phase === 'eject' ? 0.5 : m.phase === 'hang' ? 0.65 : 0.85;
+            ctx.fillStyle = dark ? '#c8c4bc' : '#1a1916';
+
+            var bw = 2 * SCALE, bh = 7 * SCALE;
+            ctx.fillRect(-bw / 2, -bh, bw, bh + 4 * SCALE);
+
+            ctx.beginPath();
+            ctx.moveTo(-bw / 2, -bh);
+            ctx.lineTo(0, -bh - 5 * SCALE);
+            ctx.lineTo(bw / 2, -bh);
+            ctx.fill();
+
+            if (m.phase === 'lock') {
+                ctx.globalAlpha = 0.4 + Math.random() * 0.3;
+                ctx.fillStyle = dark ? '#e8e4dc' : '#6a6660';
+                ctx.fillRect(-bw / 2, 4 * SCALE, bw, (3 + Math.random() * 4) * SCALE);
+            }
+
+            ctx.globalAlpha = 1;
+            ctx.restore();
+        }
     }
 
-    // ── gen bar ───────────────────────────────────────────────────────────────
+    // ── bars ──────────────────────────────────────────────────────────────────
     function updateGenBar() {
         if (!genBarEl) return;
         genBarEl.style.width = Math.max(0, (gen / GEN_MAX) * 100) + '%';
@@ -385,9 +609,10 @@
         var filled = ((shields + armour) / total) * 100;
         var shieldFraction = shields / (shields + armour + 0.001);
         armourBarEl.style.width = Math.max(0, filled) + '%';
+        var dark = document.documentElement.classList.contains('dark');
         armourBarEl.style.background = shieldFraction > 0.05
-            ? '#1a1916'   // shields still up — normal colour
-            : '#8a4a3a';  // armour only — warmer tone as warning
+            ? (dark ? '#c8c4bc' : '#1a1916')
+            : '#8a4a3a';
     }
 
     function takeDamage(amount) {
@@ -399,6 +624,33 @@
             if (armour <= 0) triggerGameOver();
         }
     }
+
+    // ── loadout purchase ──────────────────────────────────────────────────────
+    function buyMissile() {
+        if (secondaryWeapon) return;
+        if (money < MISSILE_PRICE) return;
+        money -= MISSILE_PRICE;
+        localStorage.setItem('idle_money', money);
+        localStorage.setItem('idle_missile_unlocked', '1');
+        if (moneyEl) moneyEl.textContent = money;
+        secondaryWeapon = { type: 'missile', cooldown: 4.5, timer: 0, _last: 0 };
+        updateSecondarySlotEl();
+    }
+
+    function updateSecondarySlotEl() {
+        if (!secondarySlotEl) return;
+        if (secondaryWeapon) {
+            secondarySlotEl.textContent = 'M';
+            secondarySlotEl.classList.add('filled');
+            secondarySlotEl.title = '';
+        } else {
+            // show price if affordable, dash if not
+            secondarySlotEl.textContent = money >= MISSILE_PRICE ? MISSILE_PRICE : '\u2013';
+            secondarySlotEl.classList.remove('filled');
+            secondarySlotEl.title = money >= MISSILE_PRICE ? 'Buy missile' : 'Need ' + MISSILE_PRICE;
+        }
+    }
+
     // ── RAF loop ──────────────────────────────────────────────────────────────
     function rafLoop(now) {
         var dt = Math.min((now - lastRaf) / 1000, 0.1);
@@ -406,7 +658,6 @@
 
         var spd = scrollSpeed();
         if (flightState !== 'grounded') ship.worldY -= spd * dt;
-
 
         steer(dt);
         updateCombat(now, dt);
@@ -420,7 +671,7 @@
             updateEnemyDom();
             updateGenBar();
             updateArmourBar();
-
+            updateSecondarySlotEl();   // keep price live as money changes
         }
 
         if (open) updateUI();
@@ -430,327 +681,43 @@
 
     // ── styles ────────────────────────────────────────────────────────────────
     function injectStyles() {
+        document.documentElement.style.setProperty('--idle-panel-w', (MOBILE ? 140 : 216) + 'px');
+        document.documentElement.style.setProperty('--idle-ship-w', (48 * SCALE) + 'px');
+
+        var link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'idle.css';
+        document.head.appendChild(link);
+
         var s = document.createElement('style');
-        s.textContent = `
+        s.textContent = [
+            '#idle-loadout-label{font-size:10px;text-transform:uppercase;letter-spacing:.16em;',
+            'color:#1a1916;margin-top:14px;margin-bottom:8px;}',
+            'html.dark #idle-loadout-label{color:#e0dcd6;}',
 
-        /* ── toggle ────────────────────────────────────────────────────────── */
-        #idle-toggle {
-            position: fixed;
-            bottom: 1.2rem;
-            right: 1.4rem;
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 36px;
-            color: #d8d4ce;
-            line-height: 1;
-            padding: 4px;
-            z-index: 300;
-            user-select: none;
-            transition: color .25s;
-            font-family: serif;
-        }
-        #idle-toggle:hover,
-        #idle-toggle.on       { color: #8a8680; }
-        #idle-toggle.locked   { font-size: 28px; }
+            '#idle-loadout-slots{display:flex;gap:6px;}',
 
-        /* ── panel ─────────────────────────────────────────────────────────── */
-        #idle-panel {
-            position: fixed;
-            top: 0; right: 0; bottom: 0;
-            width: ${MOBILE ? 140 : 216}px;
-            background: rgba(250,249,247,0.82);
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
-            border-left: 0.5px solid #c8c4bc;
-            transform: translateX(100%);
-            transition: transform .26s ease;
-            z-index: 250;
-            display: flex;
-            flex-direction: column;
-            padding: 2.2rem 1.4rem 1.5rem;
-            font-family: "EB Garamond","Times New Roman",serif;
-            color: #1a1916;
-        }
-        #idle-panel.on { transform: translateX(0); }
+            '.idle-slot{',
+            'width:32px;height:32px;',
+            'border:0.5px solid #c8c4bc;',
+            'display:flex;align-items:center;justify-content:center;',
+            'font-family:"EB Garamond","Times New Roman",serif;',
+            'font-size:13px;letter-spacing:.06em;',
+            'color:#1a1916;',
+            'user-select:none;',
+            'transition:border-color .15s,color .15s,opacity .15s;',
+            '}',
 
-        /* ── spm ────────────────────────────────────────────────────────────── */
-        #idle-spm {
-            font-size: 32px;
-            color: #aaa69e;
-            letter-spacing: .08em;
-            font-style: italic;
-            min-height: 32px;
-            margin-bottom: 0;
-        }
+            '.idle-slot.primary{opacity:0.9;cursor:default;}',
 
-        /* ── money ──────────────────────────────────────────────────────────── */
-        #idle-money-label {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: .16em;
-            color: #c8c4bc;
-            margin-top: 0;
-            margin-bottom: 4px;
-        }
-        #idle-money {
-            font-size: 22px;
-            letter-spacing: .04em;
-            color: #1a1916;
-            line-height: 1;
-            margin-bottom: 1.2rem;
-        }
-        html.dark #idle-money-label { color: #3d4148; }
-        html.dark #idle-money       { color: #c8c4bc; }
+            '.idle-slot.secondary{opacity:0.35;cursor:pointer;}',
+            '.idle-slot.secondary:hover{border-color:#8a8680;opacity:0.55;}',
+            '.idle-slot.secondary.filled{opacity:0.9;cursor:default;}',
+            '.idle-slot.secondary.filled:hover{border-color:#c8c4bc;}',
 
-        /* ── gen bar ────────────────────────────────────────────────────────── */
-        #idle-gen-label {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: .16em;
-            color: #c8c4bc;
-            margin-bottom: 10px;
-        }
-        #idle-gen-track {
-            width: 100%;
-            height: 2px;
-            background: #e8e4dc;
-            overflow: hidden;
-        }
-        #idle-gen-bar {
-            height: 100%;
-            width: 0%;
-            background: #1a1916;
-            transition: width .08s linear;
-        }
-        html.dark #idle-gen-label { color: #3d4148; }
-        html.dark #idle-gen-track { background: #252830; }
-        html.dark #idle-gen-bar   { background: #c8c4bc; }
-
-        /* ── armour bar ─────────────────────────────────────────────────────── */
-        #idle-armour-label {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: .16em;
-            color: #c8c4bc;
-            margin-top: 10px;
-            margin-bottom: 10px;
-        }
-        #idle-armour-track {
-            width: 100%;
-            height: 2px;
-            background: #e8e4dc;
-            overflow: visible;
-            position: relative;
-        }
-        #idle-armour-track::after {
-            content: '';
-            position: absolute;
-            left: 20%;
-            top: -2px;
-            width: 1px;
-            height: 6px;
-            background: #c8c4bc;
-        }
-        #idle-armour-bar {
-            height: 100%;
-            width: 100%;
-            background: #1a1916;
-            transition: width .08s linear;
-        }
-        html.dark #idle-armour-label       { color: #3d4148; }
-        html.dark #idle-armour-track       { background: #252830; }
-        html.dark #idle-armour-track::after { background: #3a3d45; }
-        html.dark #idle-armour-bar         { background: #c8c4bc; }
-
-        /* ── game over ──────────────────────────────────────────────────────── */
-        #idle-gameover {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            z-index: 500;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 1.4rem;
-            pointer-events: none;
-        }
-        #idle-gameover-msg {
-            font-family: "EB Garamond","Times New Roman",serif;
-            font-size: 28px;
-            font-style: italic;
-            color: #aaa69e;
-            letter-spacing: .08em;
-        }
-        #idle-gameover-btn {
-            font-size: 10px;
-            font-family: "EB Garamond","Times New Roman",serif;
-            text-transform: uppercase;
-            letter-spacing: .16em;
-            color: #c8c4bc;
-            background: none;
-            border: 0.5px solid #e0ddd8;
-            border-radius: 1px;
-            padding: 6px 16px;
-            cursor: pointer;
-            pointer-events: all;
-            transition: color .15s, border-color .15s;
-        }
-        #idle-gameover-btn:hover              { color: #1a1916; border-color: #8a8680; }
-        html.dark #idle-gameover-msg          { color: #3a3d45; }
-        html.dark #idle-gameover-btn          { color: #3a3d45; border-color: #252830; }
-        html.dark #idle-gameover-btn:hover    { color: #c8c4bc; border-color: #6a6660; }
-
-        /* ── lock button ────────────────────────────────────────────────────── */
-        #idle-lock {
-            font-size: 10px;
-            color: #c8c4bc;
-            background: none;
-            border: 0.5px solid #e0ddd8;
-            border-radius: 1px;
-            padding: 4px 10px;
-            letter-spacing: .1em;
-            text-transform: uppercase;
-            cursor: pointer;
-            margin-top: auto;
-            font-family: inherit;
-            align-self: flex-start;
-            transition: color .15s, border-color .15s;
-        }
-        #idle-lock:hover,
-        #idle-lock.on { color: #1a1916; border-color: #8a8680; }
-        html.dark #idle-lock          { color: #3a3d45; border-color: #252830; }
-        html.dark #idle-lock:hover,
-        html.dark #idle-lock.on       { color: #c8c4bc; border-color: #6a6660; }
-
-        /* ── card transparency ──────────────────────────────────────────────── */
-        .card            { background: rgba(255,255,255,0.15) !important; backdrop-filter: none; }
-        html.dark .card  { background: rgba(13,15,18,0.15)   !important; }
-
-        /* ── canvas ─────────────────────────────────────────────────────────── */
-        #idle-canvas {
-            position: fixed;
-            top: 0; left: 0;
-            height: 100%;
-            z-index: 1;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 1.2s ease;
-        }
-        #idle-canvas.on          { opacity: 0.2; }
-        html.dark #idle-canvas   { filter: invert(1); }
-
-        /* ── ship ───────────────────────────────────────────────────────────── */
-        #idle-ship {
-            position: fixed;
-            pointer-events: none;
-            z-index: 3;
-            width: ${48 * SCALE}px;
-            height: auto;
-            opacity: 0;
-            transition: opacity 1.4s ease;
-            image-rendering: pixelated;
-            image-rendering: crisp-edges;
-        }
-        #idle-ship.on          { opacity: 0.3; }
-        html.dark #idle-ship   { filter: invert(1); }
-
-        /* ── enemy ──────────────────────────────────────────────────────────── */
-        .idle-enemy {
-            position: fixed;
-            pointer-events: none;
-            z-index: 2;
-            width: ${48 * SCALE}px;
-            height: auto;
-            opacity: 0;
-            transition: opacity 1.4s ease;
-            image-rendering: pixelated;
-            image-rendering: crisp-edges;
-            transform-origin: center center;
-        }
-        .idle-enemy.on         { opacity: 0.3; }
-        html.dark .idle-enemy  { filter: invert(1); }
-
-        /* ── kill float ─────────────────────────────────────────────────────── */
-        @keyframes idle-kill {
-            0%   { transform: translate(0px,0px)   scale(1);    opacity: 1; }
-            30%  { transform: translate(2px,-18px)  scale(1.05); opacity: 1; }
-            70%  { transform: translate(-3px,-38px) scale(1.09); opacity: 0.7; }
-            100% { transform: translate(1px,-52px)  scale(1.12); opacity: 0; }
-        }
-        .idle-float-kill {
-            position: fixed;
-            pointer-events: none;
-            z-index: 400;
-            font-family: "EB Garamond","Times New Roman",serif;
-            font-size: 14px;
-            letter-spacing: .1em;
-            color: #1a1916;
-            transform-origin: center bottom;
-            animation: idle-kill 3.5s cubic-bezier(0.2,0.1,0.4,1) forwards;
-        }
-        html.dark .idle-float-kill { color: #c8c4bc; }
-
-        /* ── energy float ───────────────────────────────────────────────────── */
-        @keyframes idle-smoke {
-            0%   { transform: translate(0px,0px)     scale(1);    opacity: 1; }
-            20%  { transform: translate(3px,-24px)   scale(1.03); opacity: 1; }
-            45%  { transform: translate(-4px,-54px)  scale(1.07); opacity: 1; }
-            70%  { transform: translate(5px,-86px)   scale(1.11); opacity: 1; }
-            100% { transform: translate(-2px,-118px) scale(1.14); opacity: 1; }
-        }
-        .idle-float {
-            position: fixed;
-            pointer-events: none;
-            z-index: 400;
-            font-family: "EB Garamond","Times New Roman",serif;
-            font-size: 16px;
-            letter-spacing: .06em;
-            color: #aaa69e;
-            transform-origin: center bottom;
-            animation: idle-smoke 2.6s cubic-bezier(0.25,0.1,0.35,1) forwards;
-        }
-        html.dark .idle-float { color: #4a4d55; }
-
-        /* ── dark panel overrides ───────────────────────────────────────────── */
-        html.dark #idle-panel   { background: rgba(13,15,18,0.85); border-left-color: #252830; color: #c8c4bc; }
-        html.dark #idle-toggle  { color: #2e3038; }
-        html.dark #idle-toggle:hover,
-        html.dark #idle-toggle.on { color: #6a6660; }
-        html.dark #idle-spm     { color: #6a6660; }
-
-        /* ── mobile topbar ──────────────────────────────────────────────────── */
-        #idle-topbar-stats {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex: 1;
-            justify-content: center;
-        }
-        #idle-topbar-gen-track {
-            width: 48px;
-            height: 1px;
-            background: transparent;
-            overflow: hidden;
-        }
-        #idle-topbar-gen-bar {
-            height: 100%;
-            width: 0%;
-            background: #1a1916;
-            transition: width .08s linear;
-        }
-        #idle-topbar-money {
-            font-size: 11px;
-            letter-spacing: .1em;
-            font-family: "EB Garamond","Times New Roman",serif;
-            color: #aaa69e;
-            min-width: 24px;
-        }
-        html.dark #idle-topbar-gen-track { background: transparent; }
-        html.dark #idle-topbar-gen-bar   { background: #c8c4bc; }
-        html.dark #idle-topbar-money     { color: #6a6660; }
-
-        `;
+            'html.dark .idle-slot{border-color:#2e3038;color:#c8c4bc;}',
+            'html.dark .idle-slot.secondary:hover{border-color:#6a6660;}',
+        ].join('');
         document.head.appendChild(s);
     }
 
@@ -771,13 +738,69 @@
         if (open || locked) shipEl.classList.add('on');
     }
 
-    function makeEnemyEl() {
+    function makeEnemyEl(type) {
         var el = document.createElement('img');
         el.className = 'idle-enemy';
-        el.src = 'assets/enemy1.png';
+        el.src = type === 2 ? 'assets/enemy2.png' : 'assets/enemy1.png';
         document.body.appendChild(el);
         if (open || locked) el.classList.add('on');
         return el;
+    }
+
+    function buildLoadoutSlots(parent) {
+        var label = document.createElement('div');
+        label.id = 'idle-loadout-label';
+        label.textContent = 'loadout';
+        parent.appendChild(label);
+
+        var row = document.createElement('div');
+        row.id = 'idle-loadout-slots';
+
+        function attachTooltip(el, getText) {
+            el.addEventListener('mouseenter', function (ev) {
+                var t = document.getElementById('idle-tooltip');
+                if (!t) return;
+                t.textContent = getText();
+                t.classList.add('on');
+                positionTooltip(t, el);
+            });
+            el.addEventListener('mousemove', function (ev) {
+                var t = document.getElementById('idle-tooltip');
+                if (!t) return;
+                positionTooltip(t, el);
+            });
+            el.addEventListener('mouseleave', function () {
+                var t = document.getElementById('idle-tooltip');
+                if (t) t.classList.remove('on');
+            });
+        }
+
+        function positionTooltip(t, el) {
+            var r = el.getBoundingClientRect();
+            t.style.left = Math.round(r.left) + 'px';
+            t.style.top = Math.round(r.bottom + 6) + 'px';
+        }
+
+        var primarySlot = document.createElement('div');
+        primarySlot.className = 'idle-slot primary';
+        primarySlot.textContent = 'V';
+        attachTooltip(primarySlot, function () { return 'Slot 1: Vulcan'; });
+        row.appendChild(primarySlot);
+
+        secondarySlotEl = document.createElement('div');
+        secondarySlotEl.className = 'idle-slot secondary';
+        secondarySlotEl.addEventListener('click', function () {
+            if (!secondaryWeapon) buyMissile();
+        });
+        attachTooltip(secondarySlotEl, function () {
+            if (secondaryWeapon) return 'Slot 2: Missile';
+            if (money >= MISSILE_PRICE) return 'Slot 2: Buy for ' + MISSILE_PRICE;
+            return 'Slot 2 \u2014 ' + MISSILE_PRICE + ' required';
+        });
+        updateSecondarySlotEl();
+        row.appendChild(secondarySlotEl);
+
+        parent.appendChild(row);
     }
 
     function buildDOM() {
@@ -787,12 +810,11 @@
         positionCanvas();
 
         ship.x = CW / 2;
-        ship.y = MOBILE ? CH * 0.80 : CH * 0.80;
+        ship.y = CH * 0.80;
         ship.worldY = CH * 0.2;
         updateShipDom();
 
         if (MOBILE) {
-            // ── Mobile: inject compact stats into topbar ───────────────────────
             var topbarStats = document.createElement('div');
             topbarStats.id = 'idle-topbar-stats';
             topbarStats.style.display = open ? 'flex' : 'none';
@@ -814,7 +836,6 @@
                 topbarDark.parentNode.insertBefore(topbarStats, topbarDark);
             }
 
-            // ── Mobile: canvas toggle button above submit button ───────────────
             toggleEl = document.createElement('button');
             toggleEl.id = 'idle-toggle';
             toggleEl.setAttribute('aria-label', 'idle');
@@ -831,8 +852,8 @@
                 toggleEl.classList.toggle('on', open);
             });
             document.body.appendChild(toggleEl);
+
         } else {
-            // ── Desktop: existing panel + toggle ──────────────────────────────
             toggleEl = document.createElement('button');
             toggleEl.id = 'idle-toggle';
             toggleEl.setAttribute('aria-label', 'idle');
@@ -882,12 +903,35 @@
             armourTrack.appendChild(armourBarEl);
             panelEl.appendChild(armourTrack);
 
+            var tooltipEl = document.createElement('div');
+            tooltipEl.id = 'idle-tooltip';
+            document.body.appendChild(tooltipEl);
+
+            // ── loadout slots — under shields ──────────────────────────────
+            buildLoadoutSlots(panelEl);
+
             lockBtn = document.createElement('button');
             lockBtn.id = 'idle-lock';
             lockBtn.textContent = locked ? 'Unpin view' : 'Pin view';
             lockBtn.classList.toggle('on', locked);
             lockBtn.addEventListener('click', toggleLock);
-            panelEl.appendChild(lockBtn);
+
+            var resetBtn = document.createElement('button');
+            resetBtn.id = 'idle-reset';
+            resetBtn.textContent = '↺';
+            resetBtn.title = 'Reset progress';
+            resetBtn.addEventListener('click', function () {
+                if (confirm('Reset all progress?')) {
+                    localStorage.clear();
+                    location.reload();
+                }
+            });
+
+            var lockRow = document.createElement('div');
+            lockRow.style.cssText = 'display:flex;align-items:center;gap:8px;margin-top:auto;';
+            lockRow.appendChild(lockBtn);
+            lockRow.appendChild(resetBtn);
+            panelEl.appendChild(lockRow);
 
             document.body.appendChild(panelEl);
             panelEl.classList.toggle('on', open);
@@ -922,7 +966,7 @@
         localStorage.setItem('idle_locked', locked ? '1' : '0');
     }
 
-    // ── float ─────────────────────────────────────────────────────────────────
+    // ── floats ────────────────────────────────────────────────────────────────
     function spawnEnergyFloat() {
         var q = document.getElementById('question');
         var x, y;
@@ -936,7 +980,7 @@
         }
         var el = document.createElement('span');
         el.className = 'idle-float';
-        el.textContent = '⁂' + GEN_AWARD;
+        el.textContent = '\u2042' + GEN_AWARD;
         el.style.left = x + 'px';
         el.style.top = y + 'px';
         document.body.appendChild(el);
@@ -958,6 +1002,7 @@
         if (mins < 0.1) return '0.0';
         return (correctCount / mins).toFixed(1);
     }
+
     function takeoff() {
         if (flightState === 'grounded') {
             flightState = 'ignition';
@@ -969,6 +1014,7 @@
             shipEl.src = 'assets/ship-cruise.png';
         }
     }
+
     function award(n) {
         correctCount++;
         gen = Math.min(GEN_MAX, gen + GEN_AWARD);
@@ -984,8 +1030,15 @@
         for (var i = 0; i < enemies.length; i++) enemies[i].el.remove();
         enemies = [];
         bullets = [];
+        missiles = [];
         enemyBullets = [];
-        enemyRespawnTimer = 17;
+        enemyRespawnTimer = 10;
+        waveIndex = 0;
+        waveTimer = 0;
+        if (secondaryWeapon) {
+            secondaryWeapon.timer = 0;
+            secondaryWeapon._last = 0;
+        }
         flightState = 'grounded';
         shipEl.src = 'assets/ship.png';
         ship.x = CW / 2;
@@ -996,6 +1049,7 @@
         sessionStart = Date.now();
         if (gameOverEl) { gameOverEl.remove(); gameOverEl = null; }
     }
+
     function triggerGameOver() {
         gameOver = true;
         flightState = 'grounded';
@@ -1049,7 +1103,13 @@
 
     // ── init ──────────────────────────────────────────────────────────────────
     window.addEventListener('DOMContentLoaded', function () {
+        // restore missile unlock across sessions
+        if (localStorage.getItem('idle_missile_unlocked') === '1') {
+            secondaryWeapon = { type: 'missile', cooldown: 4.5, timer: 0, _last: 0 };
+        }
+
         buildDOM();
+
         if (MOBILE && window.visualViewport) {
             function updateCanvasToViewport() {
                 var vv = window.visualViewport;
@@ -1066,9 +1126,10 @@
             window.visualViewport.addEventListener('resize', updateCanvasToViewport);
             updateCanvasToViewport();
         }
+
         patchSubmitAnswer();
         spawnLevel();
-        enemyRespawnTimer = 17;
+        enemyRespawnTimer = 10;
         ship.worldY = CH * 0.2;
         updateUI();
         lastRaf = performance.now();
