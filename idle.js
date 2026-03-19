@@ -1191,8 +1191,16 @@
             window.visualViewport.addEventListener('scroll', updateCanvasToViewport);
             var answerInput = document.getElementById('answer-input');
             if (answerInput) {
-                answerInput.addEventListener('focus', function () { setTimeout(updateCanvasToViewport, 300); setTimeout(updateCanvasToViewport, 650); });
-                answerInput.addEventListener('blur', function () { setTimeout(updateCanvasToViewport, 300); setTimeout(updateCanvasToViewport, 650); });
+                function pollViewport() {
+                    var last = 0;
+                    function poll() {
+                        var h = window.visualViewport.height;
+                        if (h !== last) { last = h; updateCanvasToViewport(); requestAnimationFrame(poll); }
+                    }
+                    requestAnimationFrame(poll);
+                }
+                answerInput.addEventListener('focus', pollViewport);
+                answerInput.addEventListener('blur', pollViewport);
             }
             updateCanvasToViewport();
         }
