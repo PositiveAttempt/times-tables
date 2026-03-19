@@ -62,6 +62,7 @@
     var GEN_MAX = _gen.max !== undefined ? _gen.max : 100;
     var GEN_AWARD = _gen.award !== undefined ? _gen.award : 28;
     var GEN_COST = _gen.shotCost !== undefined ? _gen.shotCost : 1;
+    var MISSILE_GEN_COST = _gen.missileShotCost !== undefined ? _gen.missileShotCost : 4;
     var GEN_IDLE = _gen.idleDrain !== undefined ? _gen.idleDrain : 0.3;
 
     //money
@@ -345,7 +346,7 @@
             });
         }
         secondaryWeapon.timer = secondaryWeapon.cooldown;
-        gen = Math.max(0, gen - GEN_COST * 4);
+        gen = Math.max(0, gen - MISSILE_GEN_COST);
     }
 
     // ── missile physics ───────────────────────────────────────────────────────

@@ -6,15 +6,16 @@ var IDLE_CONFIG = {
 
     gen: {
         max: 100,   // generator capacity
-        award: 5,   // gen restored per correct answer
+        award: 10,   // gen restored per correct answer
         shotCost: 1,   // gen per vulcan shot
+        missleShotCost: 2,   // gen per missle shot
         idleDrain: 0.3    // gen lost per second passively
     },
 
     shields: {
         max: 80,  // maximum shield hp
         regen: 7,  // shields restored per second while regenerating
-        regenGenCost: 10,  // gen drained per second while regenerating
+        regenGenCost: 8,  // gen drained per second while regenerating
         regenDelay: 0.5   // seconds after last hit before regen begins
     },
 
