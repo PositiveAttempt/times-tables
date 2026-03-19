@@ -328,7 +328,6 @@ body.idle-minimal {
 }
 
 /* Hide chrome */
-body.idle-minimal #dark-toggle   { display: none; }
 body.idle-minimal .page-footer   { display: none; }
 body.idle-minimal .settings-row  { display: none; }
 body.idle-minimal .progress-bar-wrap { display: none; }
@@ -394,13 +393,13 @@ html.dark #idle-drawer-toggle { color: #6a6660; }
 
 #idle-drawer {
     position: fixed;
-    top: 0; left: 0; bottom: 0;
+    top: 0; right: 0; bottom: 0;
     width: 160px;
     background: rgba(250,249,247,0.82);
     backdrop-filter: blur(5px);
     -webkit-backdrop-filter: blur(5px);
-    border-right: 0.5px solid #c8c4bc;
-    transform: translateX(-100%);
+    border-left: 0.5px solid #c8c4bc;
+    transform: translateX(100%);
     transition: transform .26s ease;
     z-index: 260;
     display: flex;
@@ -413,7 +412,7 @@ html.dark #idle-drawer-toggle { color: #6a6660; }
 }
 html.dark #idle-drawer {
     background: rgba(13,15,18,0.85);
-    border-right-color: #252830;
+    border-left-color: #252830;
     color: #c8c4bc;
 }
 

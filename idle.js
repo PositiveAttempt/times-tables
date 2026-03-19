@@ -539,9 +539,10 @@
             drawerToggleBtn.id = 'idle-drawer-toggle';
             drawerToggleBtn.setAttribute('aria-label', 'loadout drawer');
             drawerToggleBtn.textContent = '\u229e';
+            drawerToggleBtn.style.display = open ? '' : 'none';
             drawerToggleBtn.addEventListener('click', function () {
                 drawerOpen = !drawerOpen;
-                if (drawerEl) drawerEl.style.transform = drawerOpen ? 'translateX(0)' : 'translateX(-100%)';
+                if (drawerEl) drawerEl.style.transform = drawerOpen ? 'translateX(0)' : 'translateX(100%)';
                 localStorage.setItem('idle_drawer_open', drawerOpen ? '1' : '0');
             });
             if (topbarDark && topbarDark.parentNode) {
@@ -551,7 +552,7 @@
             // ── Mobile: left drawer ────────────────────────────────────────────
             drawerEl = document.createElement('div');
             drawerEl.id = 'idle-drawer';
-            drawerEl.style.transform = drawerOpen ? 'translateX(0)' : 'translateX(-100%)';
+            drawerEl.style.transform = drawerOpen ? 'translateX(0)' : 'translateX(100%)';
 
             // Ship diagram box — centred ship img mirroring flight state
             var diagBox = document.createElement('div');
@@ -579,6 +580,12 @@
                 open = !open;
                 setVisible(open);
                 topbarStats.style.display = open ? 'flex' : 'none';
+                drawerToggleBtn.style.display = open ? '' : 'none';
+                if (!open && drawerEl) {
+                    drawerOpen = false;
+                    drawerEl.style.transform = 'translateX(100%)';
+                    localStorage.setItem('idle_drawer_open', '0');
+                }
                 toggleEl.textContent = open ? '\u25c9' : '\u25cf';
                 localStorage.setItem('idle_panel_open', open ? '1' : '0');
                 toggleEl.classList.toggle('on', open);
