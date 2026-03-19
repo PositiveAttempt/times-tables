@@ -44,6 +44,62 @@
 }
 #idle-panel.on { transform: translateX(0); }
 
+/* ── minimal mode — active when idle panel is visible ───────────────────── */
+body.idle-minimal .header {
+    display: none;
+}
+
+body.idle-minimal .stats-row {
+    border: none !important;
+    background: transparent !important;
+}
+
+body.idle-minimal .stat {
+    border: none !important;
+}
+
+body.idle-minimal .stat-num {
+    font-size: 20px;
+}
+
+body.idle-minimal .progress-bar-wrap {
+    display: none;
+}
+
+body.idle-minimal .settings-row {
+    display: none;
+}
+
+body.idle-minimal .card {
+    border-color: transparent !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+body.idle-minimal .timer-bar-wrap {
+    display: none;
+}
+
+body.idle-minimal .submit-btn {
+    display: none;
+}
+
+body.idle-minimal .hint-btn {
+    display: none;
+}
+
+body.idle-minimal .input-row {
+    justify-content: center;
+}
+
+body.idle-minimal .feedback {
+    display: none;
+}
+
+body.idle-minimal .missed-section {
+    display: none;
+}
+
 /* ── spm ─────────────────────────────────────────────────────────────────── */
 #idle-spm {
     font-size: 32px;

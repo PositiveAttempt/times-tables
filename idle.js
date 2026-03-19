@@ -866,6 +866,9 @@
             document.body.appendChild(panelEl);
             panelEl.classList.toggle('on', open);
             toggleEl.classList.toggle('on', open);
+
+            document.body.classList.toggle('idle-minimal', open || locked);
+
         }
     }
 
@@ -873,7 +876,10 @@
     function setVisible(v) {
         canvasEl.classList.toggle('on', v);
         shipEl.classList.toggle('on', v);
-        enemyEl.classList.toggle('on', v);
+        for (var i = 0; i < enemies.length; i++) {
+            enemies[i].el.classList.toggle('on', v);
+        }
+        document.body.classList.toggle('idle-minimal', v); 
     }
 
     function togglePanel() {
