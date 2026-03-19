@@ -1191,8 +1191,8 @@
             window.visualViewport.addEventListener('scroll', updateCanvasToViewport);
             var answerInput = document.getElementById('answer-input');
             if (answerInput) {
-                answerInput.addEventListener('focus', function () { setTimeout(updateCanvasToViewport, 300); });
-                answerInput.addEventListener('blur', function () { setTimeout(updateCanvasToViewport, 300); });
+                answerInput.addEventListener('focus', function () { setTimeout(updateCanvasToViewport, 300); setTimeout(updateCanvasToViewport, 650); });
+                answerInput.addEventListener('blur', function () { setTimeout(updateCanvasToViewport, 300); setTimeout(updateCanvasToViewport, 650); });
             }
             updateCanvasToViewport();
         }
