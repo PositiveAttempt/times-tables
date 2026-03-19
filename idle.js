@@ -301,16 +301,15 @@
             if (target) {
                 var ey = engageY(target);
                 // snap directly below the target — crisp, purposeful
-                fx += (target.x - ship.x) * 34.0;
-                fy += (ey - ship.y) * 24.0;
-                damp = 0.75;  // low damping → snappy positioning
+                fx += (target.x - ship.x) * 18.0;
+                fy += (ey - ship.y) * 14.0;
+                damp = 0.96;
                 // arrived: lock in and commit
                 if (Math.abs(ship.x - target.x) < 12 && Math.abs(ship.y - ey) < 18) {
                     pilotState = 'engage';
                 }
             } else {
-                // no enemy — centre and wait
-                fx += (CW * 0.5 - ship.x) * 9;
+                // no enemy — pull back on Y only, hold current X
                 fy += (CH * 0.78 - ship.y) * 9;
                 damp = 0.80;
             }
@@ -628,16 +627,17 @@
         if (flightState === 'grounded') return;
         var dark = document.documentElement.classList.contains('dark');
 
+
         // bullets — thin vertical streaks
-        ctx.fillStyle = dark ? 'rgba(200,196,188,0.9)' : 'rgba(26,25,22,0.85)';
+        ctx.fillStyle = dark ? 'rgba(255,255,255,1)' : 'rgba(26,25,22,1)';
         for (var i = 0; i < bullets.length; i++) {
-            ctx.fillRect(bullets[i].x - 1.5 * SCALE, bullets[i].y - 5 * SCALE, 3 * SCALE, 9 * SCALE);
+            ctx.fillRect(bullets[i].x - 2 * SCALE, bullets[i].y - 7 * SCALE, 4 * SCALE, 12 * SCALE);
         }
 
-        // enemy bullets — slightly wider, dimmer
-        ctx.fillStyle = dark ? 'rgba(200,196,188,0.5)' : 'rgba(26,25,22,0.45)';
+        // enemy bullets — slightly wider, clearly visible
+        ctx.fillStyle = dark ? 'rgba(255,255,255,0.85)' : 'rgba(26,25,22,0.8)';
         for (var i = 0; i < enemyBullets.length; i++) {
-            ctx.fillRect(enemyBullets[i].x - 2 * SCALE, enemyBullets[i].y - 5 * SCALE, 4 * SCALE, 9 * SCALE);
+            ctx.fillRect(enemyBullets[i].x - 2.5 * SCALE, enemyBullets[i].y - 6 * SCALE, 5 * SCALE, 11 * SCALE);
         }
 
         // missiles
