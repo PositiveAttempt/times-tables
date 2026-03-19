@@ -644,6 +644,12 @@
         var dt = Math.min((now - lastRaf) / 1000, 0.1);
         lastRaf = now;
 
+        if (MOBILE && window.visualViewport) {
+            var vvh = window.visualViewport.height;
+            if (vvh !== lastVvHeight) { lastVvHeight = vvh; updateCanvasToViewport(); }
+        }
+
+
         var spd = scrollSpeed();
         if (flightState !== 'grounded') ship.worldY -= spd * dt;
 
@@ -1189,19 +1195,6 @@
             }
             window.visualViewport.addEventListener('resize', updateCanvasToViewport);
             window.visualViewport.addEventListener('scroll', updateCanvasToViewport);
-            var answerInput = document.getElementById('answer-input');
-            if (answerInput) {
-                function pollViewport() {
-                    var last = 0;
-                    function poll() {
-                        var h = window.visualViewport.height;
-                        if (h !== last) { last = h; updateCanvasToViewport(); requestAnimationFrame(poll); }
-                    }
-                    requestAnimationFrame(poll);
-                }
-                answerInput.addEventListener('focus', pollViewport);
-                answerInput.addEventListener('blur', pollViewport);
-            }
             updateCanvasToViewport();
         }
         patchSubmitAnswer();
