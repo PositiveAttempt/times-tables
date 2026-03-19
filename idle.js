@@ -644,11 +644,6 @@
         var dt = Math.min((now - lastRaf) / 1000, 0.1);
         lastRaf = now;
 
-        if (MOBILE && window.visualViewport) {
-            var vvh = window.visualViewport.height;
-            if (vvh !== lastVvHeight) { lastVvHeight = vvh; updateCanvasToViewport(); }
-        }
-
 
         var spd = scrollSpeed();
         if (flightState !== 'grounded') ship.worldY -= spd * dt;
