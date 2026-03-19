@@ -327,28 +327,100 @@ body.idle-minimal {
     background: transparent;
 }
 
-/* Hide chrome */
-body.idle-minimal #dark-toggle   { display: none; }
-body.idle-minimal .page-footer   { display: none; }
-body.idle-minimal .settings-row  { display: none; }
-body.idle-minimal .progress-bar-wrap { display: none; }
-body.idle-minimal .timer-bar-wrap    { display: none; }
-body.idle-minimal .hint              { display: none; }
-body.idle-minimal .hint-btn          { display: none; }
-body.idle-minimal .missed-section    { display: none; }
+    /* Hide chrome */
+    body.idle-minimal #dark-toggle {
+        display: none;
+    }
 
-/* Stats row — keep streak only, strip all borders */
-body.idle-minimal .stats-row {
-    border: none;
-    background: transparent;
-    margin-bottom: 0.5rem;
-}
-body.idle-minimal .stat { border: none; }
+    body.idle-minimal .page-footer {
+        display: none;
+    }
 
-/* Card — transparent, borderless */
-body.idle-minimal .card {
-    border: none;
-    background: transparent !important;
-    padding-top: 1.5rem;
-    padding-bottom: 0.8rem;
-}
+    body.idle-minimal .settings-row {
+        display: none;
+    }
+
+    body.idle-minimal .progress-bar-wrap {
+        display: none;
+    }
+
+    body.idle-minimal .timer-bar-wrap {
+        display: none;
+    }
+
+    body.idle-minimal .hint {
+        display: none;
+    }
+
+    body.idle-minimal .hint-btn {
+        display: none;
+    }
+
+    body.idle-minimal .missed-section {
+        display: none;
+    }
+
+    /* Header — hide title/subtitle/divider line, float nav to top-left */
+    body.idle-minimal .header {
+        border-bottom: none;
+        padding: 0;
+        margin: 0;
+        position: fixed;
+        top: 1.2rem;
+        left: 1.4rem;
+        text-align: left;
+    }
+
+    body.idle-minimal .title {
+        display: none;
+    }
+
+    body.idle-minimal .subtitle {
+        display: none;
+    }
+
+    body.idle-minimal .nav-links {
+        margin-top: 0 !important;
+        justify-content: flex-start !important;
+        flex-direction: column;
+        gap: 6px !important;
+        align-items: flex-start !important;
+    }
+
+    /* Stats row — keep streak only, strip all borders */
+    body.idle-minimal .stats-row {
+        border: none;
+        background: transparent;
+        margin-bottom: 0.5rem;
+    }
+
+    body.idle-minimal .stat {
+        border: none;
+    }
+
+    /* Card — transparent, borderless */
+    body.idle-minimal .card {
+        border: none;
+        background: transparent !important;
+        padding-top: 1.5rem;
+        padding-bottom: 0.8rem;
+    }
+
+    body.idle-minimal .input-row {
+        position: fixed;
+        bottom: calc(-50vh + 10rem);
+        left: 50%;
+        transform: translateX(-50%);
+        margin-bottom: 0;
+        width: 100%;
+        max-width: 420px;
+    }
+
+    /* Question — vertically center in the remaining space */
+    body.idle-minimal #drill-screen {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        margin: 0;
+    }
