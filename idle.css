@@ -311,6 +311,13 @@ html.dark #idle-lock.on      { color: #c8c4bc; border-color: #6a6660; }
 html.dark #idle-topbar-gen-bar  { background: #c8c4bc; }
 html.dark #idle-topbar-money    { color: #6a6660; }
 html.dark #idle-ship-diagram    { border-color: #2e3038; }
+html.dark #idle-canvas {
+    filter: invert(1);
+}
+
+html.dark #idle-ship {
+    filter: invert(1);
+}
 html.dark #idle-loadout-label   { color: #3d4148; }
 html.dark .idle-slot            { border-color: #252830; color: #3d4148; }
 html.dark .idle-slot.equipped   { border-color: #6a6660; color: #c8c4bc; }

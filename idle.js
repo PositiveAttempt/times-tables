@@ -124,8 +124,11 @@
             enemyEl.style.left = Math.round(cardLeft + enemy.x - SHIP_W / 2) + 'px';
             enemyEl.style.right = '';
             enemyEl.style.top = Math.round(enemy.y - SHIP_H / 2) + 'px';
-            enemyEl.style.filter = enemy.flash > 0 ? 'brightness(2)' : 'none';
-            enemyEl.style.display = 'block';
+            var darkMode = document.documentElement.classList.contains('dark');
+            var baseFilter = darkMode ? 'invert(1)' : '';
+            enemyEl.style.filter = enemy.flash > 0
+                ? (baseFilter ? baseFilter + ' brightness(2)' : 'brightness(2)')
+                : (baseFilter || 'none');            enemyEl.style.display = 'block';
         } else {
             enemyEl.style.display = 'none';
         }
