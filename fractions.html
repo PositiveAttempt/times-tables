@@ -506,7 +506,6 @@
                 checkLeafState();
                 if (missed[key]) { missed[key].count--; if (missed[key].count <= 0) delete missed[key]; }
                 updateStats();
-                updateProgress();
                 setTimeout(nextQuestion, 600);
             } else {
                 numInp.className = 'answer-input wrong';
@@ -518,7 +517,6 @@
                 missed[key].count++;
                 queue.unshift(current);
                 updateStats();
-                updateProgress();
                 showMC();
                 setTimeout(() => {
                     numInp.value = ''; numInp.className = 'answer-input';

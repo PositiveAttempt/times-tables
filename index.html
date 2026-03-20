@@ -176,7 +176,7 @@
             const inp = document.getElementById('answer-input');
             inp.value = ''; inp.className = 'answer-input'; inp.focus();
             updateMissed();
-            updateProgress();
+            updateStats();
             startMCTimer();
         }
 
@@ -282,7 +282,6 @@
                 checkLeafState();
                 if (missed[key]) { missed[key].count--; if (missed[key].count <= 0) delete missed[key]; }
                 updateStats();
-                updateProgress();
                 setTimeout(nextQuestion, 600);
             } else {
                 inp.className = 'answer-input wrong';
@@ -293,7 +292,6 @@
                 missed[key].count++;
                 queue.unshift(current);
                 updateStats();
-                updateProgress();
                 showMC();
                 setTimeout(() => {
                     inp.value = ''; inp.className = 'answer-input';

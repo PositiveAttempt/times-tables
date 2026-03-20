@@ -65,6 +65,7 @@ function updateStats() {
     document.getElementById('s-correct').textContent = correct;
     document.getElementById('s-wrong').textContent = wrong;
     document.getElementById('s-streak').textContent = streak;
+    updateProgress();
 }
 
 function updateProgress() {

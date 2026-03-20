@@ -923,17 +923,6 @@
             shItem.appendChild(mobileShieldsEl);
             topbarStats.appendChild(shItem);
 
-            // Progress bar — two raw inline-styled divs, no class names
-            var progTrack = document.createElement('div');
-            progTrack.style.cssText = 'width:60px;height:2px;background:#e0ddd8;overflow:hidden;flex-shrink:0;display:flex';
-            mobileProgFill = document.createElement('div');
-            mobileProgFill.style.cssText = 'height:100%;width:0%;background:#1a1916;transition:width .3s ease;flex-shrink:0';
-            progTrack.appendChild(mobileProgFill);
-            var mobileProgWrong = document.createElement('div');
-            mobileProgWrong.id = 'prog-wrong';
-            mobileProgWrong.style.cssText = 'height:100%;width:0%;background:#9b2020;transition:width .3s ease;flex-shrink:0';
-            progTrack.appendChild(mobileProgWrong);
-
             // Money — keep as-is
             moneyEl = document.createElement('div');
             moneyEl.id = 'idle-topbar-money';
@@ -943,7 +932,6 @@
             var topbarDark = document.getElementById('topbar-dark');
             if (topbarDark && topbarDark.parentNode) {
                 topbarDark.parentNode.insertBefore(topbarStats, topbarDark);
-                topbarDark.parentNode.insertBefore(progTrack, topbarDark);
             }
 
             // ── Mobile: drawer toggle (before dark toggle) ─────────────────────

@@ -134,24 +134,6 @@
         html.dark .mode-sym { color: #3d4148; }
         html.dark .mode-item.current .mode-sym { color: #faf9f7; }
 
-        /* ── PROGRESS HAIRLINE ───────────────────────────────────────────── */
-        #prog-wrap {
-            position: fixed;
-            top: 44px; left: 0; right: 0;
-            height: 1px;
-            background: #e0ddd8;
-            z-index: 10;
-        }
-        html.dark #prog-wrap { background: #252830; }
-
-        #prog-fill {
-            height: 100%;
-            background: #1a1916;
-            width: 0%;
-            transition: width .4s ease;
-        }
-        html.dark #prog-fill { background: #c8c4bc; }
-
         /* ── QUESTION AREA ───────────────────────────────────────────────── */
         #question-area {
             position: fixed;
@@ -435,7 +417,7 @@
             queue = shuffle([...allFacts]);
             missed = {}; correct = 0; wrong = 0; streak = 0; doneCount = 0; total = queue.length;
             document.getElementById('done-screen').classList.remove('visible');
-            updateStats(); updateProgress(); nextQ();
+            updateStats(); nextQ();
         }
 
         function drillMissed() {
@@ -445,7 +427,7 @@
             queue = shuffle([...mf, ...mf]);
             missed = {}; correct = 0; wrong = 0; streak = 0; doneCount = 0; total = queue.length;
             document.getElementById('done-screen').classList.remove('visible');
-            updateStats(); updateProgress(); nextQ();
+            updateStats(); nextQ();
         }
 
         function nextQ() {
@@ -558,7 +540,7 @@
                 document.getElementById('feedback').className = 'correct';
                 correct++; streak++; doneCount++;
                 if (missed[key]) { missed[key].count--; if (missed[key].count <= 0) delete missed[key]; }
-                updateStats(); updateProgress(); setTimeout(nextQ, 500);
+                updateStats(); setTimeout(nextQ, 500);
             } else {
                 inp.className = 'wrong';
                 document.getElementById('feedback').textContent = '';
@@ -567,7 +549,7 @@
                 if (!missed[key]) missed[key] = { fact: current, count: 0 };
                 missed[key].count++;
                 queue.unshift(current);
-                updateStats(); updateProgress(); showMC();
+                updateStats(); showMC();
                 setTimeout(() => {
                     inp.value = ''; inp.className = '';
                     document.getElementById('feedback').textContent = '';

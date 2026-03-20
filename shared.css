@@ -1197,6 +1197,22 @@ html.dark #dark-toggle {
     transition: width .4s ease;
 }
 
+@media (max-width: 767px) {
+    #prog-wrap {
+        height: 3px;
+        top: 76px;
+    }
+    #prog-fill {
+        background: #1a1916;
+    }
+    html.dark #prog-wrap {
+        background: #252830;
+    }
+    html.dark #prog-fill {
+        background: #c8c4bc;
+    }
+}
+
 /* Stage */
 #stage {
     position: fixed;

@@ -151,24 +151,6 @@
         html.dark .sub-btn { color: #6a6660; }
         html.dark .sub-btn.active { color: #faf9f7; }
 
-        /* ── PROGRESS HAIRLINE ───────────────────────────────────────────── */
-        #prog-wrap {
-            position: fixed;
-            top: 76px; left: 0; right: 0;
-            height: 1px;
-            background: #e0ddd8;
-            z-index: 10;
-        }
-        html.dark #prog-wrap { background: #252830; }
-
-        #prog-fill {
-            height: 100%;
-            background: #1a1916;
-            width: 0%;
-            transition: width .4s ease;
-        }
-        html.dark #prog-fill { background: #c8c4bc; }
-
         /* ── QUESTION AREA ───────────────────────────────────────────────── */
         #question-area {
             position: fixed;
@@ -733,7 +715,7 @@
             missed = {}; correct = 0; wrong = 0; streak = 0; doneCount = 0;
             total = queue.length;
             document.getElementById('done-screen').classList.remove('visible');
-            updateStats(); updateProgress(); nextQ();
+            updateStats(); nextQ();
         }
 
         function drillMissed() {
@@ -744,7 +726,7 @@
             missed = {}; correct = 0; wrong = 0; streak = 0; doneCount = 0;
             total = queue.length;
             document.getElementById('done-screen').classList.remove('visible');
-            updateStats(); updateProgress(); nextQ();
+            updateStats(); nextQ();
         }
 
         function nextQ() {
@@ -804,7 +786,7 @@
                 document.getElementById('feedback').className = 'correct';
                 correct++; streak++; doneCount++;
                 if (missed[key]) { missed[key].count--; if (missed[key].count <= 0) delete missed[key]; }
-                updateStats(); updateProgress();
+                updateStats();
                 setTimeout(nextQ, 600);
             } else {
                 inp.className = 'wrong';
@@ -814,7 +796,7 @@
                 if (!missed[key]) missed[key] = { fact: current, count: 0 };
                 missed[key].count++;
                 queue.unshift(current);
-                updateStats(); updateProgress();
+                updateStats();
                 showMC();
                 setTimeout(() => {
                     inp.value = ''; inp.className = '';
