@@ -628,13 +628,13 @@
         var dark = document.documentElement.classList.contains('dark');
 
         // bullets — thin vertical streaks
-        ctx.fillStyle = dark ? 'rgba(255,0,255,1)' : 'rgba(26,25,22,1)';
+        ctx.fillStyle = dark ? 'rgba(26,25,22,1)' : 'rgba(26,25,22,1)';
         for (var i = 0; i < bullets.length; i++) {
             ctx.fillRect(bullets[i].x - 2 * SCALE, bullets[i].y - 7 * SCALE, 4 * SCALE, 12 * SCALE);
         }
 
         // enemy bullets — slightly wider, clearly visible
-        ctx.fillStyle = dark ? 'rgba(255,255,255,0.85)' : 'rgba(26,25,22,0.8)';
+        ctx.fillStyle = dark ? 'rgba(26,25,22,1)' : 'rgba(26,25,22,1)';
         for (var i = 0; i < enemyBullets.length; i++) {
             ctx.fillRect(enemyBullets[i].x - 2.5 * SCALE, enemyBullets[i].y - 6 * SCALE, 5 * SCALE, 11 * SCALE);
         }
@@ -646,7 +646,7 @@
                 var tf = 1 - (m.trail[t].age / 0.35);
                 ctx.globalAlpha = tf * (m.phase === 'lock' ? 0.55 : 0.18);
                 var ts = (m.phase === 'lock' ? 2.5 : 1.5) * tf * SCALE;
-                ctx.fillStyle = dark ? '#ffffff' : '#1a1916';
+                ctx.fillStyle = dark ? 'rgba(26,25,22,1)' : 'rgba(26,25,22,1)';
                 ctx.beginPath();
                 ctx.arc(m.trail[t].x, m.trail[t].y, ts, 0, Math.PI * 2);
                 ctx.fill();
@@ -657,7 +657,7 @@
             ctx.translate(m.x, m.y);
             ctx.rotate(m.angle + Math.PI / 2);
             ctx.globalAlpha = m.phase === 'eject' ? 0.5 : m.phase === 'hang' ? 0.65 : 0.85;
-            ctx.fillStyle = dark ? '#ffffff' : '#1a1916';
+            ctx.fillStyle = dark ? 'rgba(26,25,22,1)' : 'rgba(26,25,22,1)';
 
             var bw = 2 * SCALE, bh = 7 * SCALE;
             ctx.fillRect(-bw / 2, -bh, bw, bh + 4 * SCALE);
@@ -669,7 +669,7 @@
 
             if (m.phase === 'lock') {
                 ctx.globalAlpha = 0.4 + Math.random() * 0.3;
-                ctx.fillStyle = dark ? '#e8e4dc' : '#6a6660';
+                ctx.fillStyle = dark ? 'rgba(26,25,22,1)' : 'rgba(26,25,22,1)';
                 ctx.fillRect(-bw / 2, 4 * SCALE, bw, (3 + Math.random() * 4) * SCALE);
             }
 
