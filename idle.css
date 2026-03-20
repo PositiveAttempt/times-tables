@@ -665,10 +665,15 @@ body.idle-minimal {
         display: none;
     }
 
-    body.idle-minimal .progress-bar-wrap {
-        display: visible;
-    }
-
+.progress-bar-wrap {
+    width: 100%;
+    max-width: 420px;
+    height: 25px;
+    background: #e8e4dc;
+    margin-bottom: 2rem;
+    overflow: hidden;
+    display: flex;
+}
     body.idle-minimal .hint {
         display: none;
     }
