@@ -1203,6 +1203,7 @@ html.dark #dark-toggle {
     #prog-wrap {
         height: 3px;
         top: 76px;
+        display: flex;
     }
 
     #prog-wrong {
@@ -1210,6 +1211,7 @@ html.dark #dark-toggle {
         width: 0%;
         background: #9b2020;
         transition: width .4s ease;
+
     }
 
     #prog-fill {
