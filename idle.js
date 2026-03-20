@@ -278,10 +278,19 @@
     function steer(dt) {
         if (flightState === 'grounded' || flightState === 'ignition') return;
 
-        // burn animation (unchanged)
+        // burn animation + banking sprites
         if (flightState === 'cruising') {
             var spd0 = Math.sqrt(ship.vx * ship.vx + ship.vy * ship.vy);
-            if (spd0 > 20) {
+            var BANK_THRESHOLD = 40;
+            if (ship.vx < -BANK_THRESHOLD) {
+                shipEl.src = 'assets/ship-move-left.png';
+                burnFrame = 0;
+                burnTimer = 0;
+            } else if (ship.vx > BANK_THRESHOLD) {
+                shipEl.src = 'assets/ship-move-right.png';
+                burnFrame = 0;
+                burnTimer = 0;
+            } else if (spd0 > 20) {
                 burnTimer += dt;
                 if (burnTimer >= BURN_INTERVAL) {
                     burnTimer = 0;
