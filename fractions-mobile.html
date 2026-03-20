@@ -595,7 +595,7 @@
             queue = [...pool];
             missed = {}; correct = 0; wrong = 0; streak = 0; doneCount = 0; total = queue.length;
             document.getElementById('done-screen').classList.remove('visible');
-            updateStats(); nextQ();
+            updateStats(); updateProgress(); nextQ();
         }
 
         function drillMissed() {
@@ -605,7 +605,7 @@
             queue = shuffle([...mf, ...mf]);
             missed = {}; correct = 0; wrong = 0; streak = 0; doneCount = 0; total = queue.length;
             document.getElementById('done-screen').classList.remove('visible');
-            updateStats(); nextQ();
+            updateStats(); updateProgress(); nextQ();
         }
 
         function nextQ() {
@@ -664,7 +664,7 @@
                 document.getElementById('feedback').className = 'correct';
                 correct++; streak++; doneCount++;
                 if (missed[key]) { missed[key].count--; if (missed[key].count <= 0) delete missed[key]; }
-                updateStats(); setTimeout(nextQ, 500);
+                updateStats(); updateProgress(); setTimeout(nextQ, 500);
             } else {
                 n.className = 'frac-inp wrong'; d.className = 'frac-inp wrong';
                 document.getElementById('feedback').textContent = '';
@@ -673,7 +673,7 @@
                 if (!missed[key]) missed[key] = { fact: current, count: 0 };
                 missed[key].count++;
                 queue.unshift(current);
-                updateStats(); showMC();
+                updateStats(); updateProgress(); showMC();
                 setTimeout(() => {
                     n.value = ''; n.className = 'frac-inp';
                     d.value = ''; d.className = 'frac-inp';
